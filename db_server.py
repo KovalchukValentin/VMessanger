@@ -26,7 +26,8 @@ import sqlite3
 
 class DB:
     def __init__(self):
-        self.conn = sqlite3.connect('Calendar.db')
+        self.dateformat = '%d-%m-%Y %H:%M:%S:%f'
+        self.conn = sqlite3.connect('VMessangerS.db')
         self.c = self.conn.cursor()
         self.c.execute('''CREATE TABLE IF NOT EXISTS Users (id integer primary key,
                                                             name text)''')
@@ -36,7 +37,8 @@ class DB:
                                                                txt text, 
                                                                time text)''')
         self.c.execute('''CREATE TABLE IF NOT EXISTS Chats (id integer primary key,
-                                                            users_id text)''')
+                                                            user1_id integer,
+                                                            user2_id integer)''')
         self.c.execute('''CREATE TABLE IF NOT EXISTS Contacts (id integer primary key,
                                                                user_id integer,
                                                                users_id text)''')
@@ -72,7 +74,7 @@ class DB:
     def get_user(self):
         pass
 
-    def get_messages(self):
+    def get_messages(self, ):
         pass
 
     def get_chat(self):

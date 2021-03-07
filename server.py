@@ -1,11 +1,14 @@
 from flask import Flask, request, abort
 from datetime import datetime
-dateformat = '%d-%m-%Y %H:%M:%S:%f'
+from db_server import DB
+db = DB()
+dateformat = db.dateformat
+
 app = Flask(__name__)
-db = [{'name': "Valent",
-       'text': "Hello, it is test message",
-       'time': datetime.now().strftime(dateformat)}
-      ]
+# db = [{'name': "Valent",
+#        'text': "Hello, it is test message",
+#        'time': datetime.now().strftime(dateformat)}
+#       ]
 
 @app.route("/")
 def hello():
@@ -36,13 +39,14 @@ def send_message():
 @app.route('/messages')
 def get_messages():
     try:
-        after = request.args['after']
+        last_time = request.args['last_time']
+        user_id = request.args['user_id']
     except:
         return abort(400)
 
     result = []
-    for message in db:
-        if is_date_be_before(message['time'], after):
+    for message in db.get_messages():
+        if is_date_be_before(message['time'], last_time):
             result.append(message)
             if len(result) >= 100:
                 break
