@@ -1,14 +1,10 @@
 from flask import Flask, request, abort
-from time import time
 from datetime import datetime
-dateformat = '%Y.%m.%d'
+dateformat = '%d-%m-%Y %H:%M:%S:%f'
 app = Flask(__name__)
 db = [{'name': "Valent",
        'text': "Hello, it is test message",
-       'time': time()},
-      {'name': "Amadeus",
-       'text': "Hello, hello, it is fine",
-       'time': time()}
+       'time': datetime.now().strftime(dateformat)}
       ]
 
 @app.route("/")
@@ -32,7 +28,7 @@ def send_message():
     message = {
         'name': name,
         'text': text,
-        'time': time()
+        'time': datetime.now().strftime(dateformat)
     }
     db.append(message)
     return {'ok': True}
@@ -40,16 +36,31 @@ def send_message():
 @app.route('/messages')
 def get_messages():
     try:
-        after = float(request.args['after'])
+        after = request.args['after']
     except:
         return abort(400)
 
     result = []
     for message in db:
-        if message['time'] > after:
+        if is_date_be_before(message['time'], after):
             result.append(message)
             if len(result) >= 100:
                 break
     return {'messages': result}
+
+def is_date_be_before(date, check_date):
+    date, check_date = date.split(), check_date.split()
+    date = date[0].split("-")[::-1] + date[1].split(":")
+    check_date = check_date[0].split("-")[::-1] + check_date[1].split(":")
+    for i in range(len(date)):
+        if int(date[i]) > int(check_date[i]):
+            return True
+        if int(date[i]) == int(check_date[i]):
+            continue
+        return False
+    return False
+
+
+
 
 app.run() #host='0.0.0.0', port=4567
