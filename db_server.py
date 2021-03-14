@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 
 # Users
 # user_id
@@ -44,41 +45,82 @@ class DB:
                                                                users_id text)''')
         self.conn.commit()
 
-    def add_user(self):
+    def add_user(self, name):
+        user_id = self.get_user_id(name)
+        if user_id == None:
+            self.c.execute('''INSERT INTO Users (name) VALUES (?)''', name)
+            self.conn.commit()
+        else:
+            return user_id
+
+    def add_message(self, chat_id, user_id, text):
         pass
 
-    def add_message(self):
+    def add_chat(self, user1_id, user2_id):
+        chat_id = self.get_chat_id(user1_id, user2_id)
+        if chat_id == None:
+            self.c.execute('''INSERT INTO Chats (name) VALUES (?, ?)''', (user1_id, user2_id))
+            self.conn.commit()
+        else:
+            return chat_id
+
+    def add_contact(self, user_id, name_contact):
+        if self.isincontacts(user_id, name_contact):
+            return
+
+    def remove_message(self, message_id):
         pass
 
-    def add_chat(self):
+    def remove_chat(self, chat_id):
         pass
 
-    def add_contact(self):
+    def remove_contact(self, contact_id):
         pass
 
-    def remove_message(self):
+    def edit_user_name(self, user_id, new_name):
         pass
 
-    def remove_chat(self):
+    def edit_chat_name(self, chat_id, new_name):
         pass
 
-    def remove_contact(self):
+    def get_user(self, user_id):
+        user_name = [i for i in self.c.execute('''SELECT name FROM Users WHERE id="''' + user_id + '"')]
+        if user_name == []:
+            return None
+        return user_name[0][0]
+
+    def get_messages(self, chat_id, last_time):
         pass
 
-    def edit_user_name(self):
-        pass
+    def get_contacts(self, user_id):
+        contacts = [i for i in self.c.execute('''SELECT users_id FROM Contacts WHERE user_id="''' + user_id + '"')]
+        if contacts == []:
+            return None
+        return contacts[0][0]
 
-    def edit_chat_name(self):
-        pass
+    def isincontacts(self, user_id, name_contact):
+        contacts = self.get_contacts(user_id)
+        if contacts == None:
+            return False
+        for contact in contacts:
+            current_name_contact = self.get_user(contact)
+            if current_name_contact == name_contact:
+                return True
+        return False
 
-    def get_user(self):
-        pass
+    def get_chat_id(self, user1_id, user2_id):
+        for i in range(2):
+            chat_id = [i for i in self.c.execute('''SELECT id FROM Chats WHERE user1_id="''' + user1_id +
+                                                 '" AND user2_id="' + user2_id + '"')]
+            if chat_id == [] and i == 0:
+                user1_id, user2_id = user2_id, user1_id
+                continue
+            elif chat_id == [] and i == 1:
+                return None
+            return chat_id[0][0]
 
-    def get_messages(self, ):
-        pass
-
-    def get_chat(self):
-        pass
-
-    def get_contacts(self):
-        pass
+    def get_user_id(self, name):
+        user_id = [i for i in self.c.execute('''SELECT id FROM Users WHERE name="''' + name + '"')]
+        if user_id == []:
+            return None
+        return user_id[0][0]

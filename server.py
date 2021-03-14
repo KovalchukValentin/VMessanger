@@ -33,7 +33,7 @@ def send_message():
         'text': text,
         'time': datetime.now().strftime(dateformat)
     }
-    db.append(message)
+    db.add_message(message)
     return {'ok': True}
 
 @app.route('/messages')
@@ -63,8 +63,5 @@ def is_date_be_before(date, check_date):
             continue
         return False
     return False
-
-
-
 
 app.run() #host='0.0.0.0', port=4567
