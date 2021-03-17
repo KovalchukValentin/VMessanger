@@ -28,39 +28,48 @@ from datetime import datetime
 class DB:
     def __init__(self):
         self.dateformat = '%d-%m-%Y %H:%M:%S:%f'
-        self.conn = sqlite3.connect('VMessangerS.db')
-        self.c = self.conn.cursor()
-        self.c.execute('''CREATE TABLE IF NOT EXISTS Users (id integer primary key,
+
+        conn = self.connect_bd()
+        cur = conn.cursor()
+        cur.execute('''CREATE TABLE IF NOT EXISTS Users (id integer primary key,
                                                             name text)''')
-        self.c.execute('''CREATE TABLE IF NOT EXISTS Messages (id integer primary key,
+        cur.execute('''CREATE TABLE IF NOT EXISTS Messages (id integer primary key,
                                                                chat_id integer,
                                                                user_id integer,
                                                                txt text, 
                                                                time text)''')
-        self.c.execute('''CREATE TABLE IF NOT EXISTS Chats (id integer primary key,
+        cur.execute('''CREATE TABLE IF NOT EXISTS Chats (id integer primary key,
                                                             user1_id integer,
                                                             user2_id integer)''')
-        self.c.execute('''CREATE TABLE IF NOT EXISTS Contacts (id integer primary key,
+        cur.execute('''CREATE TABLE IF NOT EXISTS Contacts (id integer primary key,
                                                                user_id integer,
                                                                users_id text)''')
-        self.conn.commit()
+        conn.commit()
+
+    def connect_bd(self):
+        return sqlite3.connect('VMessangerS.db')
 
     def add_user(self, name):
+        conn = self.connect_bd()
+        cur = conn.cursor()
         user_id = self.get_user_id(name)
         if user_id == None:
-            self.c.execute('''INSERT INTO Users (name) VALUES (?)''', name)
-            self.conn.commit()
+            cur.execute('''INSERT INTO Users (name) VALUES ("''' + name + '")')
+            conn.commit()
+            return True
         else:
-            return user_id
+            return False
 
     def add_message(self, chat_id, user_id, text):
         pass
 
     def add_chat(self, user1_id, user2_id):
+        conn = self.connect_bd()
+        cur = conn.cursor()
         chat_id = self.get_chat_id(user1_id, user2_id)
         if chat_id == None:
-            self.c.execute('''INSERT INTO Chats (name) VALUES (?, ?)''', (user1_id, user2_id))
-            self.conn.commit()
+            cur.execute('''INSERT INTO Chats (name) VALUES (?, ?)''', (user1_id, user2_id))
+            conn.commit()
         else:
             return chat_id
 
@@ -84,7 +93,9 @@ class DB:
         pass
 
     def get_user(self, user_id):
-        user_name = [i for i in self.c.execute('''SELECT name FROM Users WHERE id="''' + user_id + '"')]
+        conn = self.connect_bd()
+        cur = conn.cursor()
+        user_name = [i for i in cur.execute('''SELECT name FROM Users WHERE id="''' + user_id + '"')]
         if user_name == []:
             return None
         return user_name[0][0]
@@ -93,7 +104,9 @@ class DB:
         pass
 
     def get_contacts(self, user_id):
-        contacts = [i for i in self.c.execute('''SELECT users_id FROM Contacts WHERE user_id="''' + user_id + '"')]
+        conn = self.connect_bd()
+        cur = conn.cursor()
+        contacts = [i for i in cur.execute('''SELECT users_id FROM Contacts WHERE user_id="''' + user_id + '"')]
         if contacts == []:
             return None
         return contacts[0][0]
@@ -109,8 +122,10 @@ class DB:
         return False
 
     def get_chat_id(self, user1_id, user2_id):
+        conn = self.connect_bd()
+        cur = conn.cursor()
         for i in range(2):
-            chat_id = [i for i in self.c.execute('''SELECT id FROM Chats WHERE user1_id="''' + user1_id +
+            chat_id = [i for i in cur.execute('''SELECT id FROM Chats WHERE user1_id="''' + user1_id +
                                                  '" AND user2_id="' + user2_id + '"')]
             if chat_id == [] and i == 0:
                 user1_id, user2_id = user2_id, user1_id
@@ -120,7 +135,9 @@ class DB:
             return chat_id[0][0]
 
     def get_user_id(self, name):
-        user_id = [i for i in self.c.execute('''SELECT id FROM Users WHERE name="''' + name + '"')]
+        conn = self.connect_bd()
+        cur = conn.cursor()
+        user_id = [i for i in cur.execute('''SELECT id FROM Users WHERE name="''' + name + '"')]
         if user_id == []:
             return None
         return user_id[0][0]

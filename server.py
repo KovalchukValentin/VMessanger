@@ -14,6 +14,34 @@ app = Flask(__name__)
 def hello():
     return "Working..."
 
+@app.route("/sing_up", methods=['POST'])
+def sing_up():
+    user = request.json
+    if not isinstance(user, dict) or \
+            set(user) != {'name'}:
+        return abort(400)
+
+    name = user['name']
+
+    if not isinstance(name, str):
+        return abort(400)
+    confirm_added = db.add_user(name)
+    user_id = None
+    if confirm_added:
+        user_id = db.get_user_id(name)
+    print(user_id)
+    return {'user_id': user_id}
+
+@app.route("/sing_in", methods=['GET'])
+def sing_in():
+    try:
+        name = request.args['name']
+    except:
+        return abort(400)
+
+    return {'user_id': db.get_user_id(name)}
+
+
 @app.route("/send", methods=['POST'])
 def send_message():
     data = request.json
@@ -28,12 +56,6 @@ def send_message():
             not isinstance(text, str):
         return abort(400)
 
-    message = {
-        'name': name,
-        'text': text,
-        'time': datetime.now().strftime(dateformat)
-    }
-    db.add_message(message)
     return {'ok': True}
 
 @app.route('/messages')
@@ -41,11 +63,12 @@ def get_messages():
     try:
         last_time = request.args['last_time']
         user_id = request.args['user_id']
+        chat_id = request.args['chat_id']
     except:
         return abort(400)
 
     result = []
-    for message in db.get_messages():
+    for message in db.get_messages(chat_id=chat_id, last_time=last_time):
         if is_date_be_before(message['time'], last_time):
             result.append(message)
             if len(result) >= 100:
