@@ -1,13 +1,14 @@
 import requests
 from db_client import DB
 
-url = "http://127.0.0.1:5000/"
+URL = "http://127.0.0.1:5000/"
+
 class Client:
     def __init__(self):
-        self.urls = {'send': url + 'send',
-                     'messages': url + 'messages',
-                     'sing_up': url + 'sing_up',
-                     'sing_in': url + 'sing_in'}
+        self.URLS = {'send': URL + 'send',
+                     'messages': URL + 'messages',
+                     'sing_up': URL + 'sing_up',
+                     'sing_in': URL + 'sing_in'}
         self.current_chat_id = None
         user_info = db.get_user()
 
@@ -26,13 +27,11 @@ class Client:
                   "\nLast time: ", self.last_time )
 
 
-
-
     def send_message(self, text):
-        requests.post(self.urls['send'], json={'chat_id': self.current_chat_id, 'user_id': self.user_id, 'text': text})
+        requests.post(self.URLS['send'], json={'chat_id': self.current_chat_id, 'user_id': self.user_id, 'text': text})
 
     def get_messages(self):
-        response = requests.get(self.urls['messages'], params={'last_time': self.last_time, 'user_id': self.user_id, 'chat_id': self.current_chat_id}).json()
+        response = requests.get(self.URLS['messages'], params={'last_time': self.last_time, 'user_id': self.user_id}).json()
 
         if not isinstance(response, dict) or set(response) != {'messages'}:
             return -1
@@ -43,13 +42,13 @@ class Client:
             self.last_time = message["time"]
 
     def sing_up(self, name):
-        user_id = requests.post(self.urls['sing_up'], json={'name': name}).json()['user_id']
+        user_id = requests.post(self.URLS['sing_up'], json={'name': name}).json()['user_id']
         if user_id == None:
             user_id = self.sing_in(name)
         return user_id
 
     def sing_in(self, name):
-        user_id = requests.get(self.urls['sing_in'], params={'name': name}).json()['user_id']
+        user_id = requests.get(self.URLS['sing_in'], params={'name': name}).json()['user_id']
         return user_id
 
     def log_out(self):

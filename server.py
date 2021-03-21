@@ -5,10 +5,6 @@ db = DB()
 dateformat = db.dateformat
 
 app = Flask(__name__)
-# db = [{'name': "Valent",
-#        'text': "Hello, it is test message",
-#        'time': datetime.now().strftime(dateformat)}
-#       ]
 
 @app.route("/")
 def hello():
@@ -63,17 +59,17 @@ def get_messages():
     try:
         last_time = request.args['last_time']
         user_id = request.args['user_id']
-        chat_id = request.args['chat_id']
     except:
         return abort(400)
 
     result = []
-    for message in db.get_messages(chat_id=chat_id, last_time=last_time):
+    for message in db.get_messages(user_id=user_id, last_time=last_time):
         if is_date_be_before(message['time'], last_time):
             result.append(message)
             if len(result) >= 100:
                 break
     return {'messages': result}
+
 
 def is_date_be_before(date, check_date):
     date, check_date = date.split(), check_date.split()

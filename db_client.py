@@ -6,11 +6,17 @@ import sqlite3
 
 class DB:
     def __init__(self):
+        self.dateformat = '%d-%m-%Y %H:%M:%S:%f'
         self.conn = sqlite3.connect('VMessangerC.db')
         self.c = self.conn.cursor()
         self.c.execute('''CREATE TABLE IF NOT EXISTS User (id integer,
                                                            name text,
                                                            last_time text)''')
+        self.c.execute('''CREATE TABLE IF NOT EXISTS Messages(id integer, 
+                                                                chat_id integer,
+                                                                user_id integer,
+                                                                txt text,
+                                                                time text)''')
 
     def save_user_if_not_exists(self, user_id: int, user_name: str, last_time: str):
         if self.get_user() == None:
@@ -30,3 +36,18 @@ class DB:
     def remove_user(self):
         self.c.execute('''DELETE From User''')
         self.conn.commit()
+
+    def save_messages(self, messages: dict) -> dict:
+        if not isinstance(messages, dict):
+            return {'ok': False}
+        for message in messages:
+            if set(message) != {'id', 'chat_id', 'user_id', 'text', 'time'}:
+                return {'ok': False}
+            message_id = message['id']
+            chat_id = message['chat_id']
+            user_id = message['user_id']
+            text = message['text']
+            time = message['time']
+            self.c.execute('''INSERT INTO Messages (id, chat_id, user_id, txt, time) VALUES (?, ?, ?, ?, ?)''',
+                            (message_id, chat_id, user_id, text, time))
+        return {'ok': True}

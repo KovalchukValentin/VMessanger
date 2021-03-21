@@ -100,7 +100,7 @@ class DB:
             return None
         return user_name[0][0]
 
-    def get_messages(self, chat_id, last_time):
+    def get_messages(self, user_id, last_time):
         pass
 
     def get_contacts(self, user_id):
