@@ -8,7 +8,8 @@ class Client:
         self.URLS = {'send': URL + 'send',
                      'messages': URL + 'messages',
                      'sing_up': URL + 'sing_up',
-                     'sing_in': URL + 'sing_in'}
+                     'sing_in': URL + 'sing_in',
+                     'create_chat': URL + 'create_chat'}
         self.current_chat_id = None
         user_info = db.get_user()
 
@@ -50,6 +51,9 @@ class Client:
     def sing_in(self, name):
         user_id = requests.get(self.URLS['sing_in'], params={'name': name}).json()['user_id']
         return user_id
+
+    def create_chat(self, user2_id):
+        response = requests.get(url=self.URLS['create_chat'], params={'user1_id': self.user_id, 'user2_id': user2_id})
 
     def log_out(self):
         db.remove_user()

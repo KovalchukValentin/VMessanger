@@ -70,6 +70,18 @@ def get_messages():
                 break
     return {'messages': result}
 
+@app.route('/create_chat')
+def create_chat():
+    try:
+        user1_id = request.args['user1_id']
+        user2_id = request.args['user2_id']
+    except:
+        return abort(400)
+
+    result = db.add_chat(user1_id=user1_id, user2_id=user2_id)
+
+    if result is not None:
+        return abort(400)
 
 def is_date_be_before(date, check_date):
     date, check_date = date.split(), check_date.split()
