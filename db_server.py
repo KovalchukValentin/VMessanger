@@ -53,7 +53,7 @@ class DB:
         conn = self.connect_bd()
         cur = conn.cursor()
         user_id = self.get_user_id(name)
-        if user_id == None:
+        if user_id is None:
             cur.execute('''INSERT INTO Users (name) VALUES ("''' + name + '")')
             conn.commit()
             return True
@@ -67,15 +67,32 @@ class DB:
         conn = self.connect_bd()
         cur = conn.cursor()
         chat_id = self.get_chat_id(user1_id, user2_id)
-        if chat_id == None:
+        if chat_id is None:
             cur.execute('''INSERT INTO Chats (name) VALUES (?, ?)''', (user1_id, user2_id))
             conn.commit()
         else:
             return chat_id
 
-    def add_contact(self, user_id, name_contact):
-        if self.isincontacts(user_id, name_contact):
-            return
+    def add_contact(self, user_id, contact_name):
+
+        if self.isincontacts(user_id, contact_name):
+            return False
+        contacts_id = self.get_contacts(user_id=user_id)
+
+        conn = self.connect_bd()
+        cur = conn.cursor()
+        need_add_contact_id = str(self.get_user_id(contact_name))
+        if contacts_id is None:
+            cur.execute('''INSERT INTO Contacts (user_id, users_id) VALUES (?, ?)''',
+                        (user_id, need_add_contact_id))
+        else:
+            contacts_id = contacts_id.split(' ')
+            contacts_id.append(need_add_contact_id)
+            contacts_id = ' '.join(contacts_id)
+            cur.execute('''UPDATE Contacts SET users_id=? WHERE user_id=?''',
+                        (contacts_id, user_id))
+        conn.commit()
+        return True
 
     def remove_message(self, message_id):
         pass
@@ -106,18 +123,18 @@ class DB:
     def get_contacts(self, user_id):
         conn = self.connect_bd()
         cur = conn.cursor()
-        contacts = [i for i in cur.execute('''SELECT users_id FROM Contacts WHERE user_id="''' + user_id + '"')]
+        contacts = [i for i in cur.execute('''SELECT users_id FROM Contacts WHERE user_id="''' + str(user_id) + '"')]
         if contacts == []:
             return None
         return contacts[0][0]
 
-    def isincontacts(self, user_id, name_contact):
+    def isincontacts(self, user_id, contact_name):
         contacts = self.get_contacts(user_id)
-        if contacts == None:
+        if contacts is None:
             return False
         for contact in contacts:
             current_name_contact = self.get_user(contact)
-            if current_name_contact == name_contact:
+            if current_name_contact == contact_name:
                 return True
         return False
 

@@ -83,6 +83,21 @@ def create_chat():
     if result is not None:
         return abort(400)
 
+@app.route('/add_contact', methods=['POST'])
+def add_contact():
+    users = request.json
+    if not isinstance(users, dict) or set(users) != {'user_id', 'contact_name'}:
+        return abort(400)
+
+    user_id = users['user_id']
+    contact_name = users['contact_name']
+
+    if not isinstance(user_id, int) or not isinstance(contact_name, str):
+        return abort(400)
+
+    db.add_contact(user_id=user_id, contact_name=contact_name)
+    return {'ok': True}
+
 def is_date_be_before(date, check_date):
     date, check_date = date.split(), check_date.split()
     date = date[0].split("-")[::-1] + date[1].split(":")

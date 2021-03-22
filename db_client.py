@@ -19,7 +19,7 @@ class DB:
                                                                 time text)''')
 
     def save_user_if_not_exists(self, user_id: int, user_name: str, last_time: str):
-        if self.get_user() == None:
+        if self.get_user() is None:
             self.c.execute('''INSERT INTO User (id, name, last_time) VALUES (?, ?, ?)''',
                            (user_id, user_name, last_time))
         else:

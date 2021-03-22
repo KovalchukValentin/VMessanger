@@ -9,11 +9,12 @@ class Client:
                      'messages': URL + 'messages',
                      'sing_up': URL + 'sing_up',
                      'sing_in': URL + 'sing_in',
-                     'create_chat': URL + 'create_chat'}
+                     'create_chat': URL + 'create_chat',
+                     'add_contact': URL + 'add_contact'}
         self.current_chat_id = None
         user_info = db.get_user()
 
-        if user_info == None:
+        if user_info is None:
             self.last_time = "0-0-0 0:0:0:0"
             self.user_name = input("Введите свой никнейм: ")
             self.user_id = self.sing_up(self.user_name)
@@ -44,7 +45,7 @@ class Client:
 
     def sing_up(self, name):
         user_id = requests.post(self.URLS['sing_up'], json={'name': name}).json()['user_id']
-        if user_id == None:
+        if user_id is None:
             user_id = self.sing_in(name)
         return user_id
 
@@ -55,11 +56,16 @@ class Client:
     def create_chat(self, user2_id):
         response = requests.get(url=self.URLS['create_chat'], params={'user1_id': self.user_id, 'user2_id': user2_id})
 
+    def add_contact(self, contact_name):
+        response = requests.post(self.URLS['add_contact'], json={'user_id': self.user_id, 'contact_name': contact_name})
     def log_out(self):
         db.remove_user()
 
 if __name__ == '__main__':
     db = DB()
     app = Client()
+    app.add_contact('lol')
+    app.add_contact('nice')
+    app.add_contact('hell')
     if input('Log out?') == "y":
         app.log_out()
