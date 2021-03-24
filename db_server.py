@@ -73,26 +73,32 @@ class DB:
         else:
             return chat_id
 
-    def add_contact(self, user_id, contact_name):
-
+    def add_contact(self, user_id: int, contact_name: str):
         if self.isincontacts(user_id, contact_name):
-            return False
-        contacts_id = self.get_contacts(user_id=user_id)
+            return {'result': 'is_in_contact'}
 
         conn = self.connect_bd()
         cur = conn.cursor()
-        need_add_contact_id = str(self.get_user_id(contact_name))
+
+        contacts_id = self.get_contacts(user_id=user_id)
+        need_add_contact_id = self.get_user_id(contact_name)
+        if need_add_contact_id is None:
+            return {'result': 'is_not_exist'}
+
+        if need_add_contact_id == user_id:
+            return {'result': 'is_your_name'}
+
         if contacts_id is None:
             cur.execute('''INSERT INTO Contacts (user_id, users_id) VALUES (?, ?)''',
-                        (user_id, need_add_contact_id))
+                        (user_id, str(need_add_contact_id)))
         else:
             contacts_id = contacts_id.split(' ')
-            contacts_id.append(need_add_contact_id)
+            contacts_id.append(str(need_add_contact_id))
             contacts_id = ' '.join(contacts_id)
             cur.execute('''UPDATE Contacts SET users_id=? WHERE user_id=?''',
                         (contacts_id, user_id))
         conn.commit()
-        return True
+        return {'result': 'ok'}
 
     def remove_message(self, message_id):
         pass
@@ -100,8 +106,9 @@ class DB:
     def remove_chat(self, chat_id):
         pass
 
-    def remove_contact(self, contact_id):
-        pass
+    def remove_contact(self, user_id, contact_name):
+        if self.isincontacts(user_id, contact_name):
+            return {'result': 'is_in_contact'}
 
     def edit_user_name(self, user_id, new_name):
         pass

@@ -95,8 +95,14 @@ def add_contact():
     if not isinstance(user_id, int) or not isinstance(contact_name, str):
         return abort(400)
 
-    db.add_contact(user_id=user_id, contact_name=contact_name)
-    return {'ok': True}
+    result = db.add_contact(user_id=user_id, contact_name=contact_name)
+    if result['result'] == 'is_your_name':
+        return {'request': 'is_your_name'}
+    if result['result'] == 'is_not_exist':
+        return {'request': 'contact_is_not_exist'}
+    if result['result'] == 'is_in_contacts':
+        return {'request': 'contact_is_in_contacts'}
+    return {'request': 'ok'}
 
 def is_date_be_before(date, check_date):
     date, check_date = date.split(), check_date.split()
