@@ -104,6 +104,26 @@ def add_contact():
         return {'request': 'contact_is_in_contacts'}
     return {'request': 'ok'}
 
+@app.route('/contacts')
+def contacts():
+    try:
+        user_id = int(request.args['user_id'])
+    except:
+        return abort(400)
+
+    if not isinstance(user_id, int):
+        return abort(400)
+
+    contacts_id = db.get_contacts(user_id=user_id)
+    if contacts_id is None:
+        return {'contacts': None}
+    contacts_id = contacts_id.split(' ')
+    contacts = []
+    for contact_id in contacts_id:
+        name = db.get_user(contact_id)
+        contacts.append(name)
+    return {'contacts': contacts}
+
 def is_date_be_before(date, check_date):
     date, check_date = date.split(), check_date.split()
     date = date[0].split("-")[::-1] + date[1].split(":")
