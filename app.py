@@ -6,12 +6,13 @@ class App(tk.Frame):
     def __init__(self, master):
         self.master = master
         super().__init__(self.master)
-        self.master.title = "VMessanger"
+
         self.master.geometry("{0}x{1}+0+0".format(self.master.winfo_screenwidth() - 100,
                                                   self.master.winfo_screenheight() - 100))
+        self.master.title("VMessanger")
         self.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.window = None
-        self.change_window('main')
+        self.change_window('sing_up')
 
     def change_window(self, name):
         if not self.window is None:
@@ -22,6 +23,7 @@ class App(tk.Frame):
             self.window = Main_window(self)
 
     def remove_window(self):
+        self.window.remove()
         self.window.destroy()
 
 
@@ -29,11 +31,30 @@ class Sing_up_window(tk.Canvas):
     def __init__(self, master):
         self.name = 'sing_up'
         self.master = master
-        super(Sing_up_window, self).__init__(master=master)
+        super(Sing_up_window, self).__init__(master=master, bg='white')
+        self.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
         self.draw_widgets()
+        self.bind('<Configure>', self.resize)
 
     def draw_widgets(self):
-        pass
+        self.sing_up_input = tk.Canvas(self, bg='black')
+        self.sing_up_input.place(x=self.winfo_width()//2, y=self.winfo_height()//2, anchor=tk.CENTER)
+        self.lbl_title = tk.Label(self.sing_up_input, justify=tk.LEFT, text='Sing up\nEnter these fields:', font='Arial 27')
+        self.lbl_title.grid(row=0, columnspan=2)
+        self.lbl_name = tk.Label(self.sing_up_input, text='Name:', font='15')
+        self.lbl_name.grid(row=1)
+        self.input_name = tk.Entry(self.sing_up_input, font='15')
+        self.input_name.grid(row=1, column=1)
+        self.confirm_btn = tk.Button(self.sing_up_input, text='Confirm', height=1, width=20, font='15')
+        self.confirm_btn.grid(row=2, column=1)
+
+    def resize(self, event):
+        self.update()
+        self.sing_up_input.place(x=self.winfo_width() // 2, y=self.winfo_height() // 2, anchor=tk.CENTER)
+
+    def remove(self):
+        self.sing_up_input.destroy()
 
 
 class Main_window(tk.Canvas):
@@ -49,6 +70,10 @@ class Main_window(tk.Canvas):
         self.leftbar.pack(side=tk.LEFT, fill=tk.Y)
         self.workspace = Workspace(self.master)
         self.workspace.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    def remove(self):
+        self.leftbar.destroy()
+        self.workspace.destroy()
 
 
 class Leftbar(tk.Canvas):
