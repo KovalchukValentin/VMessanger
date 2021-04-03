@@ -1,6 +1,31 @@
 import tkinter as tk
 import client
+import app_style as style
 
+
+class Label(tk.Label):
+    def __init__(self, master, text='', font='Arial 17', justify=tk.LEFT, bg=style.bg_main):
+        super(Label, self).__init__(master=master, text=text, font=font, justify=justify, bg=bg)
+
+
+class Button(tk.Button):
+    def __init__(self,
+                 master,
+                 text='',
+                 font='Arial 17',
+                 justify=tk.CENTER,
+                 bg=style.bg_main,
+                 command=None,
+                 height=1,
+                 width=20):
+        super(Button, self).__init__(master=master,
+                                     text=text,
+                                     font=font,
+                                     justify=justify,
+                                     bg=bg,
+                                     command=command,
+                                     height=height,
+                                     width=width)
 
 class App(tk.Frame):
     def __init__(self, master):
@@ -27,27 +52,29 @@ class App(tk.Frame):
         self.window.destroy()
 
 
-class Sing_up_window(tk.Canvas):
+class Sing_up_window(tk.Frame):
     def __init__(self, master):
         self.name = 'sing_up'
         self.master = master
-        super(Sing_up_window, self).__init__(master=master, bg='white')
+        super(Sing_up_window, self).__init__(master=master, bg=style.bg_main)
         self.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         self.draw_widgets()
         self.bind('<Configure>', self.resize)
 
     def draw_widgets(self):
-        self.sing_up_input = tk.Canvas(self, bg='black')
+        self.sing_up_input = tk.Frame(self, bg=style.bg_main)
         self.sing_up_input.place(x=self.winfo_width()//2, y=self.winfo_height()//2, anchor=tk.CENTER)
-        self.lbl_title = tk.Label(self.sing_up_input, justify=tk.LEFT, text='Sing up\nEnter these fields:', font='Arial 27')
-        self.lbl_title.grid(row=0, columnspan=2)
-        self.lbl_name = tk.Label(self.sing_up_input, text='Name:', font='15')
+        self.lbl_title = Label(self.sing_up_input, text='Sing up\nEnter these fields:', font='Arial 27')
+        self.lbl_title.grid(row=0, columnspan=2, ipady=10, sticky=tk.NW)
+        self.lbl_name = Label(self.sing_up_input, text='Name:')
         self.lbl_name.grid(row=1)
-        self.input_name = tk.Entry(self.sing_up_input, font='15')
+        self.input_name = tk.Entry(self.sing_up_input, font='Arial 17')
         self.input_name.grid(row=1, column=1)
-        self.confirm_btn = tk.Button(self.sing_up_input, text='Confirm', height=1, width=20, font='15')
-        self.confirm_btn.grid(row=2, column=1)
+        self.confirm_btn = Button(self.sing_up_input, text='Confirm', height=1, width=20, font='15', bg=style.bg_main, command=self.press_confirm_btn)
+        self.confirm_btn.grid(row=2, column=1, sticky=tk.NE)
+        self.attention_lbl = Label(self.sing_up_input)
+        self.attention_lbl.grid(row=3, columnspan=2, sticky=tk.NW)
 
     def resize(self, event):
         self.update()
@@ -56,6 +83,30 @@ class Sing_up_window(tk.Canvas):
     def remove(self):
         self.sing_up_input.destroy()
 
+    def press_confirm_btn(self):
+        entry = self.input_name.get().lower()
+        if len(entry) > 14:
+            self.show_attention('longname')
+            return
+        if entry is '':
+            self.show_attention('empty')
+            return
+        good_letters='qwertyuiopasdfghjklzxcvbnm'
+
+        for letter in entry:
+            if not letter in good_letters:
+                self.show_attention('badname')
+                return
+
+        self.input_name.delete(0, 'end')
+
+    def show_attention(self, attention):
+        if attention == 'empty':
+            self.attention_lbl['text'] = 'empty'
+        elif attention == 'badname':
+            self.attention_lbl['text'] = 'badname'
+        elif attention == 'longname':
+            self.attention_lbl['text'] = 'longname'
 
 class Main_window(tk.Canvas):
     def __init__(self, master):
