@@ -1,6 +1,7 @@
 import tkinter as tk
-import client
+from client import Client
 import app_style as style
+from db_client import DB
 
 
 class Label(tk.Label):
@@ -37,7 +38,11 @@ class App(tk.Frame):
         self.master.title("VMessanger")
         self.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.window = None
-        self.change_window('sing_up')
+        if client.user_name is None:
+            self.change_window('sing_up')
+        else:
+            self.change_window('main')
+            self.master.title(' '.join([str(x) for x in client.get_user()]))
 
     def change_window(self, name):
         if not self.window is None:
@@ -84,21 +89,30 @@ class Sing_up_window(tk.Frame):
         self.sing_up_input.destroy()
 
     def press_confirm_btn(self):
-        entry = self.input_name.get().lower()
-        if len(entry) > 14:
+        name = self.input_name.get().lower()
+        if len(name) > 14:
             self.show_attention('longname')
             return
-        if entry is '':
+        if name == '':
             self.show_attention('empty')
             return
+
         good_letters='qwertyuiopasdfghjklzxcvbnm'
 
-        for letter in entry:
+        for letter in name:
             if not letter in good_letters:
                 self.show_attention('badname')
                 return
 
-        self.input_name.delete(0, 'end')
+        result = client.sing_up(name)
+        if result is None:
+            self.show_attention('hasalready')
+            return
+        else:
+            client.set_user(user_id=result, user_name=name)
+            print(result, name, client.last_time)
+            db.save_user_if_not_exists(user_id=int(result), user_name=str(name), last_time=str(client.last_time))
+            self.master.change_window('main')
 
     def show_attention(self, attention):
         if attention == 'empty':
@@ -107,6 +121,10 @@ class Sing_up_window(tk.Frame):
             self.attention_lbl['text'] = 'badname'
         elif attention == 'longname':
             self.attention_lbl['text'] = 'longname'
+        elif attention == 'hasalready':
+            self.attention_lbl['text'] = 'hasalready'
+        self.input_name.delete(0, 'end')
+
 
 class Main_window(tk.Canvas):
     def __init__(self, master):
@@ -185,7 +203,6 @@ class Contact(tk.Button):
                                       height=self.btn_size[1])
         self.pack()
 
-
     def press(self):
         pass
 
@@ -204,7 +221,17 @@ class Workspace(tk.Canvas):
         pass
 
 
+def connect_db2client():
+    user_info = db.get_user()
+    client.set_user(user_id=user_info['user_id'],
+                    user_name=user_info['user_name'],
+                    last_time=user_info['last_time'])
+
+
 if __name__ == "__main__":
+    db = DB()
+    client = Client()
+    connect_db2client()
     root = tk.Tk()
     app = App(root)
     app.mainloop()

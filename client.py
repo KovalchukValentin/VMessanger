@@ -1,8 +1,8 @@
 import requests
-from db_client import DB
 import os
 
 URL = "http://127.0.0.1:5000/"
+
 
 class Client:
     def __init__(self):
@@ -14,20 +14,26 @@ class Client:
                      'add_contact': URL + 'add_contact',
                      'contacts': URL + 'contacts'}
         self.current_chat_id = None
-        user_info = db.get_user()
 
-        if user_info is None:
-            self.last_time = "0-0-0 0:0:0:0"
-            self.user_name = input("Введите свой никнейм: ")
+    def set_user(self, last_time=None, user_name=None, user_id=None):
+        if last_time is None:
+            last_time = "0-0-0 0:0:0:0"
+        if user_name is None and user_id is None:
+            self.user_name = user_name
+            self.user_id = user_id
+            self.last_time = last_time
+        elif not user_id is None and not user_name is None:
+            self.user_id = user_id
+            self.user_name = user_name
+            self.last_time = last_time
+        elif not user_name is None:
+            self.user_name = user_name
             self.user_id = self.sing_up(self.user_name)
-            db.save_user_if_not_exists(user_id=self.user_id, user_name=self.user_name, last_time=self.last_time)
-            print("Success sing in")
-        else:
-            self.last_time = user_info['last_time']
-            self.user_id = user_info['user_id']
-            self.user_name = user_info['user_name']
+            self.last_time = last_time
 
 
+    def get_user(self):
+        return (self.user_id, self.user_name)
 
     def send_message(self, text):
         requests.post(self.URLS['send'], json={'chat_id': self.current_chat_id, 'user_id': self.user_id, 'text': text})
@@ -44,6 +50,9 @@ class Client:
             self.last_time = message["time"]
 
     def sing_up(self, name):
+        if name is None:
+            return None
+
         user_id = requests.post(self.URLS['sing_up'], json={'name': name}).json()['user_id']
         if user_id is None:
             user_id = self.sing_in(name)
@@ -60,12 +69,11 @@ class Client:
         response = requests.post(self.URLS['add_contact'], json={'user_id': self.user_id, 'contact_name': contact_name}).json()
         return response['request']
 
-    def log_out(self):
-        db.remove_user()
+    # def log_out(self):
+    #     db.remove_user()
 
     def get_contacts(self):
         response = requests.get(url=self.URLS['contacts'], params={'user_id': self.user_id}).json()
-        print(response)
         return response['contacts']
 
 class ConsoleApp:
@@ -169,7 +177,6 @@ class ConsoleApp:
                 print(' ', str(num + 1) + '.' + command)
 
 
-if __name__ == '__main__':
-    db = DB()
-    app = ConsoleApp()
-    app.run()
+# if __name__ == '__main__':
+#     app = ConsoleApp()
+#     app.run()

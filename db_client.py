@@ -30,7 +30,7 @@ class DB:
     def get_user(self):
         user = [i for i in self.c.execute('''SELECT id, name, last_time FROM User''')]
         if user == []:
-            return None
+            return {'user_id': None, 'user_name': None, 'last_time': None}
         return {'user_id': user[0][0], 'user_name': user[0][1], 'last_time': user[0][2]}
 
     def remove_user(self):

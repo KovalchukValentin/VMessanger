@@ -22,11 +22,10 @@ def sing_up():
     if not isinstance(name, str):
         return abort(400)
     confirm_added = db.add_user(name)
-    user_id = None
     if confirm_added:
-        user_id = db.get_user_id(name)
-    print(user_id)
-    return {'user_id': user_id}
+        return {'user_id': db.get_user_id(name)}
+    else:
+        return {'user_id': None}
 
 @app.route("/sing_in", methods=['GET'])
 def sing_in():
