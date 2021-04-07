@@ -1,14 +1,17 @@
 from flask import Flask, request, abort
 from datetime import datetime
 from db_server import DB
+
 db = DB()
 dateformat = db.dateformat
 
 app = Flask(__name__)
 
+
 @app.route("/")
 def hello():
     return "Working..."
+
 
 @app.route("/sing_up", methods=['POST'])
 def sing_up():
@@ -41,14 +44,14 @@ def sing_in():
 @app.route("/send", methods=['POST'])
 def send_message():
     data = request.json
-    if not isinstance(data, dict) or\
+    if not isinstance(data, dict) or \
             set(data) != {'name', 'text'}:
         return abort(400)
 
     name = data['name']
     text = data['text']
 
-    if not isinstance(name, str) or\
+    if not isinstance(name, str) or \
             not isinstance(text, str):
         return abort(400)
 
@@ -99,7 +102,6 @@ def add_contact():
         return abort(400)
 
     result = db.add_contact(user_id=user_id, contact_name=contact_name)
-    print(result)
     if result['result'] == 'is_your_name':
         return {'request': 'is_your_name'}
     if result['result'] == 'is_not_exist':
@@ -142,4 +144,5 @@ def is_date_be_before(date, check_date):
         return False
     return False
 
-app.run() #host='0.0.0.0', port=4567
+
+app.run()  # host='0.0.0.0', port=4567

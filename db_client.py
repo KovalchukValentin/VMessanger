@@ -4,6 +4,7 @@ import sqlite3
 # user_id
 # last_time
 
+
 class DB:
     def __init__(self):
         self.dateformat = '%d-%m-%Y %H:%M:%S:%f'

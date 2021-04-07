@@ -33,6 +33,7 @@ class Button(tk.Button):
                                      height=height,
                                      width=width)
 
+
 class App(tk.Frame):
     def __init__(self, master):
         self.master = master
@@ -180,7 +181,6 @@ class Add_contact(tk.Toplevel):
         attention = client.check_name(name)
         if not attention:
             result = client.add_contact(contact_name=name)
-            print(result)
             if result == 'ok':
                 self.destroy()
                 self.master.contacts.update_contacts()
@@ -228,7 +228,6 @@ class Contacts(tk.Canvas):
         self.frame = tk.Frame(self)
         self.create_window(0, 0, anchor=tk.NW, window=self.frame)
         self.contacts = client.get_contacts()
-        print(self.contacts)
         if not self.contacts is None:
             self.contact_btns = []
             for contact_id, contact_name in self.contacts:
