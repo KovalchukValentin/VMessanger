@@ -27,6 +27,7 @@ def sing_up():
     else:
         return {'user_id': None}
 
+
 @app.route("/sing_in", methods=['GET'])
 def sing_in():
     try:
@@ -53,6 +54,7 @@ def send_message():
 
     return {'ok': True}
 
+
 @app.route('/messages')
 def get_messages():
     try:
@@ -69,6 +71,7 @@ def get_messages():
                 break
     return {'messages': result}
 
+
 @app.route('/create_chat')
 def create_chat():
     try:
@@ -81,6 +84,7 @@ def create_chat():
 
     if result is not None:
         return abort(400)
+
 
 @app.route('/add_contact', methods=['POST'])
 def add_contact():
@@ -95,6 +99,7 @@ def add_contact():
         return abort(400)
 
     result = db.add_contact(user_id=user_id, contact_name=contact_name)
+    print(result)
     if result['result'] == 'is_your_name':
         return {'request': 'is_your_name'}
     if result['result'] == 'is_not_exist':
@@ -102,6 +107,7 @@ def add_contact():
     if result['result'] == 'is_in_contacts':
         return {'request': 'contact_is_in_contacts'}
     return {'request': 'ok'}
+
 
 @app.route('/contacts')
 def contacts():
@@ -120,8 +126,9 @@ def contacts():
     contacts = []
     for contact_id in contacts_id:
         name = db.get_user(contact_id)
-        contacts.append(name)
+        contacts.append((contact_id, name))
     return {'contacts': contacts}
+
 
 def is_date_be_before(date, check_date):
     date, check_date = date.split(), check_date.split()

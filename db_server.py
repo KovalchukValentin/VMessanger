@@ -75,7 +75,7 @@ class DB:
 
     def add_contact(self, user_id: int, contact_name: str):
         if self.isincontacts(user_id, contact_name):
-            return {'result': 'is_in_contact'}
+            return {'result': 'is_in_contacts'}
 
         conn = self.connect_bd()
         cur = conn.cursor()

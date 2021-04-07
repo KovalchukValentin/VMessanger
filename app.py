@@ -4,8 +4,13 @@ import app_style as style
 from db_client import DB
 
 
+class Entry(tk.Entry):
+    def __init__(self, master, font='Arial 12'):
+        super(Entry, self).__init__(master=master, font=font)
+
+
 class Label(tk.Label):
-    def __init__(self, master, text='', font='Arial 17', justify=tk.LEFT, bg=style.bg_main):
+    def __init__(self, master, text='', font='Arial 12', justify=tk.LEFT, bg=style.bg_main):
         super(Label, self).__init__(master=master, text=text, font=font, justify=justify, bg=bg)
 
 
@@ -13,7 +18,7 @@ class Button(tk.Button):
     def __init__(self,
                  master,
                  text='',
-                 font='Arial 17',
+                 font='Arial 12',
                  justify=tk.CENTER,
                  bg=style.bg_main,
                  command=None,
@@ -90,7 +95,7 @@ class Sing_up_window(tk.Frame):
 
     def press_confirm_btn(self):
         name = self.input_name.get().lower()
-        attention = self.check_input_name(name)
+        attention = client.check_name(name)
         if not attention:
             user_id = client.sing_up(name)
             if user_id is None:
@@ -101,21 +106,6 @@ class Sing_up_window(tk.Frame):
                 db.save_user_if_not_exists(client.get_user())
         else:
             self.show_attention(attention=attention)
-
-    def check_input_name(self, name):
-        if len(name) > 14:
-            self.show_attention('longname')
-            return 'longname'
-        if name == '':
-            self.show_attention('empty')
-            return 'empty'
-
-        good_letters = 'qwertyuiopasdfghjklzxcvbnm1234567890_'
-
-        for letter in name:
-            if not letter in good_letters:
-                return 'badname'
-        return 0
 
     def show_attention(self, attention):
         if attention == 'empty':
@@ -158,18 +148,66 @@ class Leftbar(tk.Canvas):
         self.menu = Menu(self)
         self.menu.pack(side=tk.TOP, fill=tk.X)
         self.contacts = Contacts(self)
-        self.contacts.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.contacts.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        self.add_contact_btn = Button(master=self, text='Add contact', width=30, height=2, command=self.press_add_contact)
+        self.add_contact_btn.pack(side=tk.TOP, fill=tk.X)
+
+    def press_add_contact(self):
+        Add_contact(self)
+
+
+class Add_contact(tk.Toplevel):
+    def __init__(self, master):
+        super(Add_contact, self).__init__(master=master)
+        self.grab_set()
+        self.focus_set()
+        self.title('Add contact')
+        self.geometry('400x220+400+300')
+        self.resizable(False, False)
+        label_description = Label(self, text='Name:')
+        label_description.place(x=50, y=50)
+        self.attention_lbl = Label(self)
+        self.attention_lbl.place(x=110, y=75)
+        self.input_name = Entry(self)
+        self.input_name.place(x=110, y=50)
+        cancel_btn = Button(self, text="Cancel", width=10, height=1, command=self.destroy)
+        cancel_btn.place(x=70, y=120)
+        add_btn = Button(self, text="Add", width=10, height=1, command=self.press_add_contact)
+        add_btn.place(x=195, y=120)
+
+    def press_add_contact(self):
+        name = self.input_name.get().lower()
+        attention = client.check_name(name)
+        if not attention:
+            result = client.add_contact(contact_name=name)
+            print(result)
+            if result == 'ok':
+                self.destroy()
+                self.master.contacts.update_contacts()
+                return
+            attention = result
+        self.show_attention(attention)
+
+    def show_attention(self, attention):
+        if attention == 'is_your_name':
+            self.attention_lbl['text'] = 'Lol it is U name'
+        elif attention == 'contact_is_not_exist':
+            self.attention_lbl['text'] = 'Contact is not exist'
+        elif attention == 'contact_is_in_contacts':
+            self.attention_lbl['text'] = 'Contact is in contact'
+        else:
+            self.attention_lbl['text'] = 'Wrong name'
 
 
 class Menu(tk.Canvas):
     def __init__(self, master):
         self.master = master
-        self.btn_size = (35, 3)
+        self.btn_size = (30, 3)
         super(Menu, self).__init__(master=self.master)
         self.add_widgets()
 
     def add_widgets(self):
-        self.menu_btn = tk.Button(self, text="Menu", width=self.btn_size[0], height=self.btn_size[1])
+        self.menu_btn = Button(self, text="Menu", width=self.btn_size[0], height=self.btn_size[1])
         self.menu_btn.pack(side=tk.LEFT)
 
 
@@ -177,7 +215,7 @@ class Contacts(tk.Canvas):
     def __init__(self, master):
         self.master = master
         super(Contacts, self).__init__(master=self.master)
-        self.add_contacts()
+        self.show_contacts()
         self.add_scroll()
 
     def add_scroll(self):
@@ -186,20 +224,28 @@ class Contacts(tk.Canvas):
         self.configure(scrollregion=self.bbox(tk.ALL),
                        yscrollcommand=scroll.set)
 
-    def add_contacts(self):
+    def show_contacts(self):
         self.frame = tk.Frame(self)
         self.create_window(0, 0, anchor=tk.NW, window=self.frame)
-
-        self.contacts = []
-        for i in range(15):
-            self.contacts.append(Contact(master=self.frame, name=str(i)))
+        self.contacts = client.get_contacts()
+        print(self.contacts)
+        if not self.contacts is None:
+            self.contact_btns = []
+            for contact_id, contact_name in self.contacts:
+                self.contact_btns.append(Contact(master=self.frame, name=str(contact_name), user_id=contact_id))
         self.update_idletasks()
 
+    def update_contacts(self):
+        self.frame.destroy()
+        self.show_contacts()
+        self.configure(scrollregion=self.bbox(tk.ALL))
 
-class Contact(tk.Button):
-    def __init__(self, master, name):
+
+class Contact(Button):
+    def __init__(self, master, name, user_id):
+        self.user_id = user_id
         self.name = name
-        self.btn_size = (35, 3)
+        self.btn_size = (28, 3)
         super(Contact, self).__init__(master=master,
                                       text=self.name,
                                       width=self.btn_size[0],
