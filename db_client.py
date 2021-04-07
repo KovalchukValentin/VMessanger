@@ -18,13 +18,15 @@ class DB:
                                                                 txt text,
                                                                 time text)''')
 
-    def save_user_if_not_exists(self, user_id: int, user_name: str, last_time: str):
-        if self.get_user() is None:
+    def save_user_if_not_exists(self, user: dict):
+        if set(user) != {'id', 'name', 'last_time'}:
+            return 0
+        if self.get_user()['user_id'] is None:
             self.c.execute('''INSERT INTO User (id, name, last_time) VALUES (?, ?, ?)''',
-                           (user_id, user_name, last_time))
+                           (user['id'], user['name'], user['last_time']))
         else:
             self.c.execute('''UPDATE User SET last_time=?, name=? WHERE id=?''',
-                           (last_time, user_name, user_id))
+                           (user['id'], user['name'], user['last_time']))
         self.conn.commit()
 
     def get_user(self):

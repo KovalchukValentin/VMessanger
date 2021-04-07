@@ -42,7 +42,7 @@ class App(tk.Frame):
             self.change_window('sing_up')
         else:
             self.change_window('main')
-            self.master.title(' '.join([str(x) for x in client.get_user()]))
+            self.master.title(' '.join([str(item) for key, item in client.get_user().items()]))
 
     def change_window(self, name):
         if not self.window is None:
@@ -90,29 +90,32 @@ class Sing_up_window(tk.Frame):
 
     def press_confirm_btn(self):
         name = self.input_name.get().lower()
+        attention = self.check_input_name(name)
+        if not attention:
+            user_id = client.sing_up(name)
+            if user_id is None:
+                self.show_attention(attention='hasalready')
+            else:
+                client.set_user(user_name=name, user_id=user_id)
+                self.master.change_window('main')
+                db.save_user_if_not_exists(client.get_user())
+        else:
+            self.show_attention(attention=attention)
+
+    def check_input_name(self, name):
         if len(name) > 14:
             self.show_attention('longname')
-            return
+            return 'longname'
         if name == '':
             self.show_attention('empty')
-            return
+            return 'empty'
 
-        good_letters='qwertyuiopasdfghjklzxcvbnm'
+        good_letters = 'qwertyuiopasdfghjklzxcvbnm1234567890_'
 
         for letter in name:
             if not letter in good_letters:
-                self.show_attention('badname')
-                return
-
-        result = client.sing_up(name)
-        if result is None:
-            self.show_attention('hasalready')
-            return
-        else:
-            client.set_user(user_id=result, user_name=name)
-            print(result, name, client.last_time)
-            db.save_user_if_not_exists(user_id=int(result), user_name=str(name), last_time=str(client.last_time))
-            self.master.change_window('main')
+                return 'badname'
+        return 0
 
     def show_attention(self, attention):
         if attention == 'empty':

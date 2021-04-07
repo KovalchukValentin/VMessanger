@@ -31,9 +31,8 @@ class Client:
             self.user_id = self.sing_up(self.user_name)
             self.last_time = last_time
 
-
     def get_user(self):
-        return (self.user_id, self.user_name)
+        return {'id': self.user_id, 'name': self.user_name, 'last_time': self.last_time}
 
     def send_message(self, text):
         requests.post(self.URLS['send'], json={'chat_id': self.current_chat_id, 'user_id': self.user_id, 'text': text})
@@ -55,7 +54,7 @@ class Client:
 
         user_id = requests.post(self.URLS['sing_up'], json={'name': name}).json()['user_id']
         if user_id is None:
-            user_id = self.sing_in(name)
+            return None
         return user_id
 
     def sing_in(self, name):
