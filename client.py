@@ -66,7 +66,6 @@ class Client:
 
     def add_contact(self, contact_name):
         response = requests.post(self.URLS['add_contact'], json={'user_id': self.user_id, 'contact_name': contact_name}).json()
-        print(response)
         return response['request']
 
     # def log_out(self):

@@ -252,22 +252,41 @@ class Contact(Button):
         self.pack()
 
     def press(self):
-        pass
+        client.current_chat_id = client.get_contacts()
 
 
 class Workspace(tk.Canvas):
     def __init__(self, master):
         self.master = master
         super(Workspace, self).__init__(master=self.master, bg='black')
-        scroll = tk.Scrollbar(master=self)
+        self.update_space()
+
+
+    def update_space(self):
+        if not client.current_chat_id is None:
+            try:
+                self.title['text'] = client.current_chat_id
+            except:
+                self.title = Label(self, text='')
+                self.messages_space = Messages_space(self)
+                self.messages_space.pack(fill=tk.BOTH, expand=True)
+
+
+class Messages_space(tk.Canvas):
+    def __init__(self, master):
+        self.master = master
+        super(Messages_space, self).__init__(master=self.master)
+        self.show_messages()
+        self.add_scroll()
+
+    def add_scroll(self):
+        scroll = tk.Scrollbar(master=self, orient=tk.VERTICAL, command=self.yview)
         scroll.pack(side=tk.RIGHT, fill=tk.Y)
-        scroll['command'] = self.yview
-        self['yscrollcommand'] = scroll.set
-        self.add_widgets()
+        self.configure(scrollregion=self.bbox(tk.ALL),
+                       yscrollcommand=scroll.set)
 
-    def add_widgets(self):
+    def show_messages(self):
         pass
-
 
 def connect_db2client():
     user_info = db.get_user()
