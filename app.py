@@ -5,8 +5,8 @@ from db_client import DB
 
 
 class Entry(tk.Entry):
-    def __init__(self, master, font='Arial 12'):
-        super(Entry, self).__init__(master=master, font=font)
+    def __init__(self, master, font='Arial 12', height=None, width=None):
+        super(Entry, self).__init__(master=master, font=font, cursor="xterm", width=width)
 
 
 class Label(tk.Label):
@@ -267,15 +267,56 @@ class Workspace(tk.Canvas):
         if not client.current_chat_id is None:
             try:
                 self.title['text'] = contact_name
+                self.clr_text()
+                self.correct_height_textbox()
             except:
-                # self.topbar = tk.Canvas()
-                # self.topbar.pack(side=tk.TOP, fill=tk.X)
-                self.title = Label(self, text=contact_name, height=3, justify=tk.LEFT)
-                self.title.pack(side=tk.TOP)
+                self.topbar = tk.Frame(self)
+                self.topbar.pack(side=tk.TOP, fill=tk.X)
+                self.title = Label(self.topbar, text=contact_name, height=3, justify=tk.LEFT)
+                self.title.pack(side=tk.LEFT)
+
                 self.messages_space = Messages_space(self)
                 self.messages_space.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
+                self.sendbar = tk.Frame(self)
+                self.sendbar.pack(side=tk.TOP, fill=tk.X)
+                self.message_input = tk.Text(self.sendbar, font="Arial 18", height=1,cursor="xterm")
+                self.message_input.pack(side=tk.LEFT, fill=tk.X, expand=True)
+                self.send_btn = Button(self.sendbar, text="Send", width=10, height=3, command=self.press_send)
+                self.send_btn.pack(side=tk.LEFT)
 
+                self.message_input.bind('<Return>', self.press_entr)
+                self.message_input.bind("<Control-Return>", self.press_send)
+                self.message_input.bind('<BackSpace>', self.press_backspace)
+                # self.entry = tk.Entry(self.sendbar, width=30, font="Arial 18", bd=10)
+                # self.entry.focus()
+                # self.entry.pack(side=tk.LEFT)
+
+
+    def press_entr(self, event):
+        self.correct_height_textbox('entr')
+        # print(self.message_input.get())
+
+    def press_send(self, event=None):
+        self.send()
+        self.clr_text()
+        self.correct_height_textbox()
+
+    def press_backspace(self, event):
+        self.correct_height_textbox('back')
+
+    def correct_height_textbox(self, key=None):
+        count_of_lines = int(self.message_input.index('end').split('.')[0]) - 1
+        if key == 'entr':
+            count_of_lines += 1
+        if count_of_lines <= 10:
+            self.message_input.config(height=count_of_lines)
+
+    def send(self):
+        self.message_input.get("0.0", 'end')
+
+    def clr_text(self):
+        self.message_input.delete('1.0', 'end')
 
 class Messages_space(tk.Canvas):
     def __init__(self, master):
