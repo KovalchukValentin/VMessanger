@@ -12,7 +12,8 @@ class Client:
                      'sing_in': URL + 'sing_in',
                      'create_chat': URL + 'create_chat',
                      'add_contact': URL + 'add_contact',
-                     'contacts': URL + 'contacts'}
+                     'contacts': URL + 'contacts',
+                     'chat_id': URL + "chat_id"}
         self.current_chat_id = None
 
     def set_user(self, last_time=None, user_name=None, user_id=None):
@@ -87,6 +88,12 @@ class Client:
             if not letter in good_letters:
                 return 'badname'
         return 0
+
+    def get_chat_id(self, contact_id):
+        if not isinstance(contact_id, int):
+            return
+        response = requests.get(url=self.URLS['chat_id'], params={'user_id': self.user_id, 'contact_id': contact_id}).json()
+        return response['chat_id']
 
 
 # class ConsoleApp:

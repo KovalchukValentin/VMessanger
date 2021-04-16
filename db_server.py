@@ -64,13 +64,14 @@ class DB:
     def add_message(self, chat_id, user_id, text):
         pass
 
-    def add_chat(self, user1_id, user2_id):
+    def add_chat_if_not_exist(self, user1_id, user2_id):
         conn = self.connect_bd()
         cur = conn.cursor()
         chat_id = self.get_chat_id(user1_id, user2_id)
         if chat_id is None:
-            cur.execute('''INSERT INTO Chats (name) VALUES (?, ?)''', (user1_id, user2_id))
+            cur.execute('''INSERT INTO Chats (user1_id, user2_id) VALUES (?, ?)''', (user1_id, user2_id))
             conn.commit()
+            return self.get_chat_id(user1_id, user2_id)
         else:
             return chat_id
 

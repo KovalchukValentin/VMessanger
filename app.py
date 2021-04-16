@@ -231,7 +231,7 @@ class Contacts(tk.Canvas):
         if not self.contacts is None:
             self.contact_btns = []
             for contact_id, contact_name in self.contacts:
-                self.contact_btns.append(Contact(master=self.frame, name=str(contact_name), user_id=contact_id))
+                self.contact_btns.append(Contact(master=self.frame, name=str(contact_name), contact_id=contact_id))
         self.update_idletasks()
 
     def update_contacts(self):
@@ -241,19 +241,19 @@ class Contacts(tk.Canvas):
 
 
 class Contact(Button):
-    def __init__(self, master, name, user_id):
-        self.user_id = user_id
+    def __init__(self, master, name, contact_id):
+        self.contact_id = int(contact_id)
         self.name = name
         self.btn_size = (28, 3)
         super(Contact, self).__init__(master=master,
                                       text=self.name,
                                       width=self.btn_size[0],
-                                      height=self.btn_size[1])
+                                      height=self.btn_size[1], command=self.press)
         self.pack()
 
     def press(self):
-        client.current_chat_id = client.get_contacts()
-
+        client.current_chat_id = client.get_chat_id(contact_id=self.contact_id)
+        print(client.current_chat_id)
 
 class Workspace(tk.Canvas):
     def __init__(self, master):
