@@ -10,8 +10,8 @@ class Entry(tk.Entry):
 
 
 class Label(tk.Label):
-    def __init__(self, master, text='', font='Arial 12', justify=tk.LEFT, bg=style.bg_main):
-        super(Label, self).__init__(master=master, text=text, font=font, justify=justify, bg=bg)
+    def __init__(self, master, text='', font='Arial 12', justify=tk.LEFT, bg=style.bg_main, height=None, width=None):
+        super(Label, self).__init__(master=master, text=text, font=font, justify=justify, bg=bg, width=width, height=height)
 
 
 class Button(tk.Button):
@@ -253,23 +253,28 @@ class Contact(Button):
 
     def press(self):
         client.current_chat_id = client.get_chat_id(contact_id=self.contact_id)
-        print(client.current_chat_id)
+        app.window.workspace.update_space(self.name)
+
 
 class Workspace(tk.Canvas):
     def __init__(self, master):
         self.master = master
         super(Workspace, self).__init__(master=self.master, bg='black')
-        self.update_space()
 
 
-    def update_space(self):
+    def update_space(self, contact_name):
+        contact_name = contact_name.title()
         if not client.current_chat_id is None:
             try:
-                self.title['text'] = client.current_chat_id
+                self.title['text'] = contact_name
             except:
-                self.title = Label(self, text='')
+                # self.topbar = tk.Canvas()
+                # self.topbar.pack(side=tk.TOP, fill=tk.X)
+                self.title = Label(self, text=contact_name, height=3, justify=tk.LEFT)
+                self.title.pack(side=tk.TOP)
                 self.messages_space = Messages_space(self)
-                self.messages_space.pack(fill=tk.BOTH, expand=True)
+                self.messages_space.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
 
 
 class Messages_space(tk.Canvas):
