@@ -270,6 +270,7 @@ class Workspace(tk.Canvas):
                 self.title['text'] = contact_name
                 self.clr_text()
                 self.correct_height_textbox()
+                self.messages_space.show_messages()
             except:
                 self.topbar = tk.Frame(self)
                 self.topbar.pack(side=tk.TOP, fill=tk.X)

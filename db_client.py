@@ -57,3 +57,6 @@ class DB:
             self.c.execute('''INSERT INTO Messages (id, chat_id, user_id, txt, time) VALUES (?, ?, ?, ?, ?)''',
                             (message_id, chat_id, user_id, text, time))
         return {'ok': True}
+
+    def get_messages_from_chat(self, chat_id):
+        pass

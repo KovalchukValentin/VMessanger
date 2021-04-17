@@ -147,12 +147,14 @@ class DB:
     def get_messages(self, user_id):
         conn = self.connect_bd()
         cur = conn.cursor()
-        messages = [i for i in cur.execute('''SELECT id, chat_id, user_id, txt, time FROM Messages WHERE user_id="''' + str(user_id) + '"')]
+        chats_ids = self.get_chats_ids(user_id=user_id)
         result = []
-        if messages != []:
-            for message in messages:
-                message = {'id': message[0], 'chat_id': message[1], 'user_id': message[2], 'text': message[3], 'time': message[4]}
-                result.append(message)
+        for chat_id in chats_ids:
+            messages = [i for i in cur.execute('''SELECT id, chat_id, user_id, txt, time FROM Messages WHERE chat_id="''' + str(chat_id) + '"')]
+            if messages != []:
+                for message in messages:
+                    message = {'id': message[0], 'chat_id': message[1], 'user_id': message[2], 'text': message[3], 'time': message[4]}
+                    result.append(message)
         conn.close()
         if result == []:
             result = None
@@ -194,6 +196,19 @@ class DB:
                 break
 
         conn.close()
+        return result
+
+    def get_chats_ids(self, user_id):
+        conn = self.connect_bd()
+        cur = conn.cursor()
+        result = []
+        for i in range(1, 3):
+            chats_ids = [i for i in cur.execute(f'''SELECT id FROM Chats WHERE user{i}_id="{user_id}"''')]
+            if chats_ids != []:
+                for chat_id in chats_ids:
+                    result.append(chat_id[0])
+            elif i == 2 and result == []:
+                result = None
         return result
 
     def get_user_id(self, name):
