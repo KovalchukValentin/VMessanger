@@ -336,11 +336,31 @@ class Messages_space(tk.Canvas):
     def show_messages(self):
         pass
 
+
 def connect_db2client():
     user_info = db.get_user()
     client.set_user(user_id=user_info['user_id'],
                     user_name=user_info['user_name'],
                     last_time=user_info['last_time'])
+
+
+def stop():
+    global run
+    run = False
+
+
+def run_app():
+    run = True
+    counter = 0
+    while run:
+        root.update()
+        app.update()
+        if counter == 60:
+            print(client.get_messages())
+            # db.save_messages()
+            counter = 0
+        time.sleep(0.01)
+        counter += 1
 
 
 if __name__ == "__main__":
@@ -349,7 +369,5 @@ if __name__ == "__main__":
     connect_db2client()
     root = tk.Tk()
     app = App(root)
-    while True:
-        root.update()
-        app.update()
-        time.sleep(0.01)
+    root.protocol("WM_DELETE_WINDOW", stop)
+    run_app()

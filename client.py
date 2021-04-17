@@ -43,11 +43,8 @@ class Client:
 
         if not isinstance(response, dict) or set(response) != {'messages'}:
             return -1
-        response = response['messages']
 
-        for message in response:
-            print(f'{message["name"]}: {message["text"]}\n{message["time"]}\n')
-            self.last_time = message["time"]
+        return response['messages']
 
     def sing_up(self, name):
         if name is None:
