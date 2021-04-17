@@ -91,7 +91,6 @@ def create_chat():
 
 @app.route('/chat_id')
 def get_chat_id():
-    print('chat_id start')
     try:
         user_id = request.args['user_id']
         contact_id = request.args['contact_id']
@@ -100,6 +99,7 @@ def get_chat_id():
 
     result= db.add_chat_if_not_exist(user1_id=user_id, user2_id=contact_id)
     return {'chat_id': result}
+
 
 @app.route('/add_contact', methods=['POST'])
 def add_contact():
