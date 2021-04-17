@@ -136,7 +136,6 @@ def contacts():
     contacts_id = db.get_contacts(user_id=user_id)
     if contacts_id is None:
         return {'contacts': None}
-    contacts_id = contacts_id.split(' ')
     contacts = []
     for contact_id in contacts_id:
         name = db.get_user(contact_id)

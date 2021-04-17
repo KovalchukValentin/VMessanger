@@ -2,6 +2,7 @@ import tkinter as tk
 from client import Client
 import app_style as style
 from db_client import DB
+import time
 
 
 class Entry(tk.Entry):
@@ -246,7 +247,7 @@ class Contact(Button):
         self.name = name
         self.btn_size = (28, 3)
         super(Contact, self).__init__(master=master,
-                                      text=self.name,
+                                      text=self.name.title(),
                                       width=self.btn_size[0],
                                       height=self.btn_size[1], command=self.press)
         self.pack()
@@ -318,6 +319,7 @@ class Workspace(tk.Canvas):
     def clr_text(self):
         self.message_input.delete('1.0', 'end')
 
+
 class Messages_space(tk.Canvas):
     def __init__(self, master):
         self.master = master
@@ -347,4 +349,7 @@ if __name__ == "__main__":
     connect_db2client()
     root = tk.Tk()
     app = App(root)
-    app.mainloop()
+    while True:
+        root.update()
+        app.update()
+        time.sleep(0.01)

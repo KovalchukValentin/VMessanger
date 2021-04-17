@@ -54,9 +54,10 @@ class DB:
         return sqlite3.connect('VMessangerS.db')
 
     def add_user(self, name):
+        if name == 'name':
+            return False
         conn = self.connect_bd()
         cur = conn.cursor()
-        result = None
         user_id = self.get_user_id(name)
         if user_id is None:
             cur.execute('''INSERT INTO Users (name) VALUES ("''' + name + '")')
@@ -90,13 +91,16 @@ class DB:
 
 
     def add_contact(self, user_id: int, contact_name: str):
+        if contact_name == 'name':
+            return {'result': 'is_not_exist'}
         need_add_contact_id = self.get_user_id(contact_name)
-        if self.isincontacts(user_id, need_add_contact_id):
-            return {'result': 'is_in_contacts'}
-
         contacts_id = self.get_contacts(user_id=user_id)
+
         if need_add_contact_id is None:
             return {'result': 'is_not_exist'}
+
+        if self.isincontacts(user_id, need_add_contact_id):
+            return {'result': 'is_in_contacts'}
 
         if need_add_contact_id == user_id:
             return {'result': 'is_your_name'}
@@ -153,6 +157,7 @@ class DB:
         result = None
         if contacts != []:
             result = contacts[0][0]
+            result = result.split(' ')
         conn.close()
         return result
 
@@ -161,6 +166,7 @@ class DB:
         if contacts is None:
             return False
         for contact in contacts:
+            print(contact, contact_id)
             if int(contact) == int(contact_id):
                 return True
         return False
