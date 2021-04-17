@@ -41,9 +41,9 @@ class Client:
     def get_messages(self):
         response = requests.get(self.URLS['messages'], params={'last_time': self.last_time, 'user_id': self.user_id}).json()
 
-        if not isinstance(response, dict) or set(response) != {'messages'}:
+        if not isinstance(response, dict) or set(response) != {'messages', 'time'}:
             return -1
-
+        self.last_time = response['time']
         return response['messages']
 
     def sing_up(self, name):
@@ -91,6 +91,7 @@ class Client:
             return
         response = requests.get(url=self.URLS['chat_id'], params={'user_id': self.user_id, 'contact_id': contact_id}).json()
         return response['chat_id']
+
 
 
 # class ConsoleApp:

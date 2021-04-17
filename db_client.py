@@ -21,13 +21,15 @@ class DB:
 
     def save_user_if_not_exists(self, user: dict):
         if set(user) != {'id', 'name', 'last_time'}:
+            print('non')
             return 0
+        print(user['id'], user['name'], user['last_time'])
         if self.get_user()['user_id'] is None:
             self.c.execute('''INSERT INTO User (id, name, last_time) VALUES (?, ?, ?)''',
                            (user['id'], user['name'], user['last_time']))
         else:
             self.c.execute('''UPDATE User SET last_time=?, name=? WHERE id=?''',
-                           (user['id'], user['name'], user['last_time']))
+                           (user['last_time'], user['name'], user['id']))
         self.conn.commit()
 
     def get_user(self):
@@ -40,9 +42,10 @@ class DB:
         self.c.execute('''DELETE From User''')
         self.conn.commit()
 
-    def save_messages(self, messages: dict) -> dict:
-        if not isinstance(messages, dict):
+    def save_messages(self, messages: list) -> dict:
+        if not isinstance(messages, list):
             return {'ok': False}
+        print(messages)
         for message in messages:
             if set(message) != {'id', 'chat_id', 'user_id', 'text', 'time'}:
                 return {'ok': False}

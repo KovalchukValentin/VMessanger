@@ -314,7 +314,8 @@ class Workspace(tk.Canvas):
             self.message_input.config(height=count_of_lines)
 
     def send(self):
-        self.message_input.get("0.0", 'end')
+        text = self.message_input.get("0.0", 'end')
+        client.send_message(text)
 
     def clr_text(self):
         self.message_input.delete('1.0', 'end')
@@ -346,18 +347,20 @@ def connect_db2client():
 
 def stop():
     global run
+    db.save_user_if_not_exists(client.get_user())
     run = False
 
 
 def run_app():
+    global run
     run = True
     counter = 0
     while run:
         root.update()
         app.update()
-        if counter == 60:
-            print(client.get_messages())
-            # db.save_messages()
+        if counter == 240 and app.window.name == 'main':
+            # print(client.get_messages())
+            db.save_messages(client.get_messages())
             counter = 0
         time.sleep(0.01)
         counter += 1

@@ -29,8 +29,6 @@ from datetime import datetime
 class DB:
     def __init__(self):
         self.dateformat = '%d-%m-%Y %H:%M:%S:%f'
-        time = datetime.now().strftime(self.dateformat)
-        print(time)
 
         conn = self.connect_bd()
         cur = conn.cursor()
@@ -71,7 +69,8 @@ class DB:
     def add_message(self, chat_id, user_id, text):
         conn = self.connect_bd()
         cur = conn.cursor()
-        cur.execute('''INSERT INTO Messages (chat_id, user_id, txt, time) VALUES (?, ?, ?, ?)''', (chat_id, user_id, text, ))
+        cur.execute('''INSERT INTO Messages (chat_id, user_id, txt, time) VALUES (?, ?, ?, ?)''',
+                    (chat_id, user_id, text, self.get_now_time()))
         conn.commit()
         conn.close()
 
@@ -88,7 +87,6 @@ class DB:
             result = chat_id
         conn.close()
         return result
-
 
     def add_contact(self, user_id: int, contact_name: str):
         if contact_name == 'name':
@@ -112,7 +110,6 @@ class DB:
             cur.execute('''INSERT INTO Contacts (user_id, users_id) VALUES (?, ?)''',
                         (user_id, str(need_add_contact_id)))
         else:
-            contacts_id = contacts_id.split(' ')
             contacts_id.append(str(need_add_contact_id))
             contacts_id = ' '.join(contacts_id)
             cur.execute('''UPDATE Contacts SET users_id=? WHERE user_id=?''',
@@ -147,8 +144,19 @@ class DB:
         conn.close()
         return result
 
-    def get_messages(self, user_id, last_time):
-        pass
+    def get_messages(self, user_id):
+        conn = self.connect_bd()
+        cur = conn.cursor()
+        messages = [i for i in cur.execute('''SELECT id, chat_id, user_id, txt, time FROM Messages WHERE user_id="''' + str(user_id) + '"')]
+        result = []
+        if messages != []:
+            for message in messages:
+                message = {'id': message[0], 'chat_id': message[1], 'user_id': message[2], 'text': message[3], 'time': message[4]}
+                result.append(message)
+        conn.close()
+        if result == []:
+            result = None
+        return result
 
     def get_contacts(self, user_id):
         conn = self.connect_bd()
@@ -197,4 +205,7 @@ class DB:
             result = user_id[0][0]
         conn.close()
         return result
+
+    def get_now_time(self):
+        return datetime.now().strftime(self.dateformat)
 

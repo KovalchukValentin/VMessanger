@@ -45,16 +45,16 @@ def sing_in():
 def send_message():
     data = request.json
     if not isinstance(data, dict) or \
-            set(data) != {'name', 'text'}:
+            set(data) != {'chat_id', 'user_id', 'text'}:
         return abort(400)
 
-    name = data['name']
+    chat_id = data['chat_id']
+    user_id = data['user_id']
     text = data['text']
 
-    if not isinstance(name, str) or \
-            not isinstance(text, str):
+    if not isinstance(chat_id, int) or not isinstance(user_id, int) or not isinstance(text, str):
         return abort(400)
-
+    db.add_message(chat_id=chat_id, user_id=user_id, text=text)
     return {'ok': True}
 
 
@@ -67,12 +67,16 @@ def get_messages():
         return abort(400)
 
     result = []
-    for message in db.get_messages(user_id=user_id, last_time=last_time):
-        if is_date_be_before(message['time'], last_time):
-            result.append(message)
-            if len(result) >= 100:
-                break
-    return {'messages': result}
+    messages = db.get_messages(user_id=user_id)
+    if messages is None:
+        result = None
+    else:
+        for message in messages:
+            if is_date_be_before(message['time'], last_time):
+                result.append(message)
+                if len(result) >= 100:
+                    break
+    return {'messages': result, 'time': db.get_now_time()}
 
 
 @app.route('/create_chat')
@@ -83,7 +87,7 @@ def create_chat():
     except:
         return abort(400)
 
-    result = db.add_chat(user1_id=user1_id, user2_id=user2_id)
+    result = db.add_chat_if_not_exist(user1_id=user1_id, user2_id=user2_id)
 
     if result is not None:
         return abort(400)
@@ -97,7 +101,7 @@ def get_chat_id():
     except:
         return abort(400)
 
-    result= db.add_chat_if_not_exist(user1_id=user_id, user2_id=contact_id)
+    result = db.add_chat_if_not_exist(user1_id=user_id, user2_id=contact_id)
     return {'chat_id': result}
 
 
