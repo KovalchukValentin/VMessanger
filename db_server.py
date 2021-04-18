@@ -58,7 +58,7 @@ class DB:
         cur = conn.cursor()
         user_id = self.get_user_id(name)
         if user_id is None:
-            cur.execute('''INSERT INTO Users (name) VALUES ("''' + name + '")')
+            cur.execute(f'''INSERT INTO Users (name) VALUES ("{name}")''')
             conn.commit()
             result = True
         else:
@@ -149,12 +149,13 @@ class DB:
         cur = conn.cursor()
         chats_ids = self.get_chats_ids(user_id=user_id)
         result = []
-        for chat_id in chats_ids:
-            messages = [i for i in cur.execute('''SELECT id, chat_id, user_id, txt, time FROM Messages WHERE chat_id="''' + str(chat_id) + '"')]
-            if messages != []:
-                for message in messages:
-                    message = {'id': message[0], 'chat_id': message[1], 'user_id': message[2], 'text': message[3], 'time': message[4]}
-                    result.append(message)
+        if not chats_ids is None:
+            for chat_id in chats_ids:
+                messages = [i for i in cur.execute(f'''SELECT id, chat_id, user_id, txt, time FROM Messages WHERE chat_id="{str(chat_id)}"''')]
+                if messages != []:
+                    for message in messages:
+                        message = {'id': message[0], 'chat_id': message[1], 'user_id': message[2], 'text': message[3], 'time': message[4]}
+                        result.append(message)
         conn.close()
         if result == []:
             result = None
@@ -163,7 +164,7 @@ class DB:
     def get_contacts(self, user_id):
         conn = self.connect_bd()
         cur = conn.cursor()
-        contacts = [i for i in cur.execute('''SELECT users_id FROM Contacts WHERE user_id="''' + str(user_id) + '"')]
+        contacts = [i for i in cur.execute(f'''SELECT users_id FROM Contacts WHERE user_id="{str(user_id)}"''')]
         result = None
         if contacts != []:
             result = contacts[0][0]
@@ -186,8 +187,7 @@ class DB:
         cur = conn.cursor()
         result = None
         for i in range(2):
-            chat_id = [i for i in cur.execute('''SELECT id FROM Chats WHERE user1_id="''' + user1_id +
-                                                 '" AND user2_id="' + user2_id + '"')]
+            chat_id = [i for i in cur.execute(f'''SELECT id FROM Chats WHERE user1_id="{user1_id}" AND user2_id="{user2_id}"''')]
             if chat_id == [] and i == 0:
                 user1_id, user2_id = user2_id, user1_id
                 continue
@@ -214,7 +214,7 @@ class DB:
     def get_user_id(self, name):
         conn = self.connect_bd()
         cur = conn.cursor()
-        user_id = [i for i in cur.execute('''SELECT id FROM Users WHERE name="''' + name + '"')]
+        user_id = [i for i in cur.execute(f'''SELECT id FROM Users WHERE name="{name}"''')]
         result = None
         if user_id != []:
             result = user_id[0][0]

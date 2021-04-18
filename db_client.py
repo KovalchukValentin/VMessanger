@@ -59,4 +59,15 @@ class DB:
         return {'ok': True}
 
     def get_messages_from_chat(self, chat_id):
-        pass
+        messages = [i for i in self.c.execute(f'''SELECT id, chat_id, user_id, txt, time FROM Messages WHERE chat_id="{str(chat_id)}"''')]
+        result = []
+        if messages != []:
+            for message in messages:
+                result.append({'id': message[0],
+                                 'chat_id': message[1],
+                                 'user_id': message[2],
+                                 'text': message[3],
+                                 'time': message[4]})
+        if result == []:
+            result = None
+        return result

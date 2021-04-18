@@ -139,6 +139,10 @@ class Main_window(tk.Canvas):
         self.leftbar.destroy()
         self.workspace.destroy()
 
+    def update_data(self):
+        self.leftbar.update_data()
+        self.workspace.update_data()
+
 
 class Leftbar(tk.Canvas):
     def __init__(self, master):
@@ -156,6 +160,9 @@ class Leftbar(tk.Canvas):
 
     def press_add_contact(self):
         Add_contact(self)
+
+    def update_data(self):
+        pass
 
 
 class Add_contact(tk.Toplevel):
@@ -316,18 +323,59 @@ class Workspace(tk.Canvas):
 
     def send(self):
         text = self.message_input.get("0.0", 'end')
-        client.send_message(text)
+        client.send_message(self.format_send(text, len_str=50))
+
+    def format_send(self, text, len_str):
+        text = text.strip()
+        strings = text.split('\n')
+        new_text = []
+        for string in strings:
+            if len(string) >= len_str:
+                words = string.split(' ')
+                string = ''
+                count_len = 0
+                for word in words:
+                    len_w = len(word)
+                    if len_w + count_len >= len_str:
+                        bitword = word[:len_str - count_len:]
+                        endword = word[len_str - count_len::]
+                        if len(bitword) <= 8:
+                            new_text.append(string)
+                            string = word + ' '
+                        else:
+                            new_text.append(string + bitword)
+                            string = endword + ' '
+                        count_len = len(string)
+                    else:
+                        string += word + ' '
+                        count_len = len(string)
+                    if count_len >= len_str:
+                        new_text.append(string)
+                        string = ''
+                        count_len = 0
+                new_text.append(string)
+            else:
+                new_text.append(string)
+        return '\n'.join(new_text)
+
 
     def clr_text(self):
         self.message_input.delete('1.0', 'end')
+
+    def update_data(self):
+        if not client.current_chat_id is None:
+            self.messages_space.add_messages()
+
+
 
 
 class Messages_space(tk.Canvas):
     def __init__(self, master):
         self.master = master
         super(Messages_space, self).__init__(master=self.master)
-        self.show_messages()
         self.add_scroll()
+        self.show_messages()
+
 
     def add_scroll(self):
         scroll = tk.Scrollbar(master=self, orient=tk.VERTICAL, command=self.yview)
@@ -336,8 +384,37 @@ class Messages_space(tk.Canvas):
                        yscrollcommand=scroll.set)
 
     def show_messages(self):
-        pass
+        messages = db.get_messages_from_chat(client.current_chat_id)
+        if not messages is None:
+            for message in messages:
+                Message(self, message)
+            self.update_idletasks()
 
+    def add_messages(self):
+        if not new_messages is None:
+            for message in new_messages:
+                Message(self, message)
+            self.update_idletasks()
+
+
+class Message(tk.Frame):
+    def __init__(self, master, message):
+        if set(message) != {'id', 'chat_id', 'user_id', 'text', 'time'}:
+            return
+        print(message)
+        self.id_message = message['id']
+        self.chat_id = message['chat_id']
+        self.user_id = message['user_id']
+        self.text = message['text']
+        self.time = message['time']
+        super(Message, self).__init__(master=master)
+        self.pack(side=tk.TOP, fill=tk.X)
+        count_of_line = len(self.text.split('\n'))
+        body = Button(self, text=self.text, width=50, height=count_of_line*1)
+        if self.user_id == client.user_id:
+            body.pack(side=tk.RIGHT)
+        else:
+            body.pack(side=tk.LEFT)
 
 def connect_db2client():
     user_info = db.get_user()
@@ -353,19 +430,27 @@ def stop():
 
 
 def run_app():
-    global run
+    global run, new_messages
     run = True
+    new_messages = None
     counter = 0
     while run:
         root.update()
         app.update()
         if counter == 240 and app.window.name == 'main':
             # print(client.get_messages())
-            db.save_messages(client.get_messages())
+            new_messages = client.get_messages()
+            db.save_messages(new_messages)
+            app.window.update_data()
             counter = 0
         time.sleep(0.01)
         counter += 1
 
+
+# def test_format_send():
+#     text = '''\n\nHello\nmy name is Gogoses i am good programer i think cuz i want be it i am fine 123456789012345678901234567890123456789012345678901234567890\n'''
+#     result = app.window.workspace.format_send(text, 50)
+#     print(result)
 
 if __name__ == "__main__":
     db = DB()
@@ -374,4 +459,5 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = App(root)
     root.protocol("WM_DELETE_WINDOW", stop)
+    # test_format_send()
     run_app()
