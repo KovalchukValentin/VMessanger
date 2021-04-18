@@ -289,7 +289,7 @@ class Workspace(tk.Canvas):
 
                 self.sendbar = tk.Frame(self)
                 self.sendbar.pack(side=tk.TOP, fill=tk.X)
-                self.message_input = tk.Text(self.sendbar, font="Arial 18", height=1,cursor="xterm")
+                self.message_input = tk.Text(self.sendbar, font="Arial 18", height=1, cursor="xterm")
                 self.message_input.pack(side=tk.LEFT, fill=tk.X, expand=True)
                 self.send_btn = Button(self.sendbar, text="Send", width=10, height=3, command=self.press_send)
                 self.send_btn.pack(side=tk.LEFT)
@@ -367,14 +367,13 @@ class Workspace(tk.Canvas):
             self.messages_space.add_messages()
 
 
-
-
 class Messages_space(tk.Canvas):
     def __init__(self, master):
         self.master = master
         super(Messages_space, self).__init__(master=self.master)
-        self.add_scroll()
+
         self.show_messages()
+        self.add_scroll()
 
 
     def add_scroll(self):
@@ -384,16 +383,20 @@ class Messages_space(tk.Canvas):
                        yscrollcommand=scroll.set)
 
     def show_messages(self):
+        self.frame = tk.Frame(self)
+
+        self.create_window(0, 0, anchor=tk.NE, window=self.frame)
+        # self.frame.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
         messages = db.get_messages_from_chat(client.current_chat_id)
         if not messages is None:
             for message in messages:
-                Message(self, message)
+                Message(self.frame, message)
             self.update_idletasks()
 
     def add_messages(self):
         if not new_messages is None:
             for message in new_messages:
-                Message(self, message)
+                Message(self.frame, message)
             self.update_idletasks()
 
 
@@ -408,7 +411,7 @@ class Message(tk.Frame):
         self.text = message['text']
         self.time = message['time']
         super(Message, self).__init__(master=master)
-        self.pack(side=tk.TOP, fill=tk.X)
+        self.pack(side=tk.TOP, fill=tk.X, expand=True)
         count_of_line = len(self.text.split('\n'))
         body = Button(self, text=self.text, width=50, height=count_of_line*1)
         if self.user_id == client.user_id:
