@@ -363,41 +363,57 @@ class Workspace(tk.Canvas):
         self.message_input.delete('1.0', 'end')
 
     def update_data(self):
-        if not client.current_chat_id is None:
-            self.messages_space.add_messages()
+        pass
+        # if not client.current_chat_id is None:
+        #     self.messages_space.add_messages()
 
 
 class Messages_space(tk.Canvas):
     def __init__(self, master):
         self.master = master
         super(Messages_space, self).__init__(master=self.master)
-
-        self.show_messages()
+        self.frame = tk.Frame(self)
+        self.frame_id = self.create_window(0, 0, anchor=tk.NW, window=self.frame)
         self.add_scroll()
-
+        self.show_messages()
 
     def add_scroll(self):
-        scroll = tk.Scrollbar(master=self, orient=tk.VERTICAL, command=self.yview)
-        scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self.scroll = tk.Scrollbar(master=self, orient=tk.VERTICAL, command=self.yview)
+        self.scroll.pack(side=tk.RIGHT, fill=tk.Y)
         self.configure(scrollregion=self.bbox(tk.ALL),
-                       yscrollcommand=scroll.set)
+                       yscrollcommand=self.scroll.set)
+        self.bind("<Configure>", self.resize_frame)
+
+    def resize_frame(self, event):
+        self.itemconfig(self.frame_id, width=event.width-25)
+        self.scroll.set(1, 1)
+
+    def resize_space(self):
+
+        self.update_idletasks()
+        self.configure(scrollregion=self.bbox(tk.ALL),
+                       yscrollcommand=self.scroll.set)
+        self.yview_moveto(1)
+
 
     def show_messages(self):
-        self.frame = tk.Frame(self)
-
-        self.create_window(0, 0, anchor=tk.NE, window=self.frame)
-        # self.frame.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
         messages = db.get_messages_from_chat(client.current_chat_id)
+        try:
+            self.clear()
+        except:
+            pass
+        self.messages = []
+        self.add_messages(messages)
+
+    def add_messages(self, messages):
         if not messages is None:
             for message in messages:
-                Message(self.frame, message)
-            self.update_idletasks()
+                self.messages.append(Message(self.frame, message))
+        self.resize_space()
 
-    def add_messages(self):
-        if not new_messages is None:
-            for message in new_messages:
-                Message(self.frame, message)
-            self.update_idletasks()
+    def clear(self):
+        for message in self.messages:
+            message.destroy()
 
 
 class Message(tk.Frame):
@@ -443,8 +459,10 @@ def run_app():
         if counter == 240 and app.window.name == 'main':
             # print(client.get_messages())
             new_messages = client.get_messages()
-            db.save_messages(new_messages)
-            app.window.update_data()
+            if not new_messages is None:
+                app.window.workspace.messages_space.add_messages(new_messages)
+                db.save_messages(new_messages)
+                app.window.update_data()
             counter = 0
         time.sleep(0.01)
         counter += 1
