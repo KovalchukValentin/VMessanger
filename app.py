@@ -428,7 +428,7 @@ class Message(tk.Frame):
     def __init__(self, master, message):
         if set(message) != {'id', 'chat_id', 'user_id', 'text', 'time'}:
             return
-        print(message)
+        # print(message)
         self.init_message(message)
         super(Message, self).__init__(master=master)
         self.pack(side=tk.TOP, fill=tk.X, expand=True)
