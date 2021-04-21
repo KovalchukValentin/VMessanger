@@ -24,7 +24,8 @@ class Button(tk.Button):
                  bg=style.bg_main,
                  command=None,
                  height=1,
-                 width=20):
+                 width=20,
+                 anchor=tk.W):
         super(Button, self).__init__(master=master,
                                      text=text,
                                      font=font,
@@ -32,7 +33,8 @@ class Button(tk.Button):
                                      bg=bg,
                                      command=command,
                                      height=height,
-                                     width=width)
+                                     width=width,
+                                     anchor=anchor)
 
 
 class App(tk.Frame):
@@ -260,8 +262,10 @@ class Contact(Button):
         self.pack()
 
     def press(self):
-        client.current_chat_id = client.get_chat_id(contact_id=self.contact_id)
-        app.window.workspace.update_space(self.name)
+        client.current_chat = {'chat_id': client.get_chat_id(contact_id=self.contact_id),
+                                  'contact_id' : self.contact_id,
+                                  'contact_name': self.name}
+        app.window.workspace.update_space()
 
 
 class Workspace(tk.Canvas):
@@ -269,12 +273,11 @@ class Workspace(tk.Canvas):
         self.master = master
         super(Workspace, self).__init__(master=self.master, bg='black')
 
-
-    def update_space(self, contact_name):
-        contact_name = contact_name.title()
-        if not client.current_chat_id is None:
+    def update_space(self):
+        if not client.current_chat is None:
+            contact_name = client.current_chat['contact_name'].title()
             try:
-                self.title['text'] = contact_name
+                self.title['text'] = contact_name.title()
                 self.clr_text()
                 self.correct_height_textbox()
                 self.messages_space.show_messages()
@@ -320,6 +323,7 @@ class Workspace(tk.Canvas):
             count_of_lines += 1
         if count_of_lines <= 10:
             self.message_input.config(height=count_of_lines)
+            self.messages_space.resize_space()
 
     def send(self):
         text = self.message_input.get("0.0", 'end')
@@ -383,21 +387,25 @@ class Messages_space(tk.Canvas):
         self.configure(scrollregion=self.bbox(tk.ALL),
                        yscrollcommand=self.scroll.set)
         self.bind("<Configure>", self.resize_frame)
+        self.yview_moveto(1)
 
     def resize_frame(self, event):
         self.itemconfig(self.frame_id, width=event.width-25)
         self.scroll.set(1, 1)
 
     def resize_space(self):
-
+        move = False
+        if self.yview()[1] == 1:
+            move = True
         self.update_idletasks()
         self.configure(scrollregion=self.bbox(tk.ALL),
                        yscrollcommand=self.scroll.set)
-        self.yview_moveto(1)
+        if move:
+            self.yview_moveto(1)
 
 
     def show_messages(self):
-        messages = db.get_messages_from_chat(client.current_chat_id)
+        messages = db.get_messages_from_chat(client.current_chat['chat_id'])
         try:
             self.clear()
         except:
@@ -421,19 +429,31 @@ class Message(tk.Frame):
         if set(message) != {'id', 'chat_id', 'user_id', 'text', 'time'}:
             return
         print(message)
+        self.init_message(message)
+        super(Message, self).__init__(master=master)
+        self.pack(side=tk.TOP, fill=tk.X, expand=True)
+        count_of_line = len(self.show_text.split('\n'))
+        body = Button(self, text=self.show_text, width=50, height=count_of_line*1, justify=tk.LEFT, anchor=tk.W)
+        if self.user_id == client.user_id:
+            body.pack(side=tk.RIGHT)
+        else:
+            body.pack(side=tk.LEFT)
+
+    def init_message(self, message):
         self.id_message = message['id']
         self.chat_id = message['chat_id']
         self.user_id = message['user_id']
         self.text = message['text']
         self.time = message['time']
-        super(Message, self).__init__(master=master)
-        self.pack(side=tk.TOP, fill=tk.X, expand=True)
-        count_of_line = len(self.text.split('\n'))
-        body = Button(self, text=self.text, width=50, height=count_of_line*1)
-        if self.user_id == client.user_id:
-            body.pack(side=tk.RIGHT)
-        else:
-            body.pack(side=tk.LEFT)
+        self.show_text = self.format_message()
+
+    def format_message(self):
+        return f"{self.get_name(self.user_id)}:\n{self.text}\n{self.time}"
+
+    def get_name(self, user_id):
+        if user_id == client.user_id:
+            return client.user_name.title()
+        return client.current_chat['contact_name'].title()
 
 def connect_db2client():
     user_info = db.get_user()

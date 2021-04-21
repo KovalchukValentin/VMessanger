@@ -14,7 +14,7 @@ class Client:
                      'add_contact': URL + 'add_contact',
                      'contacts': URL + 'contacts',
                      'chat_id': URL + "chat_id"}
-        self.current_chat_id = None
+        self.current_chat = None
 
     def set_user(self, last_time=None, user_name=None, user_id=None):
         if last_time is None:
@@ -36,7 +36,7 @@ class Client:
         return {'id': self.user_id, 'name': self.user_name, 'last_time': self.last_time}
 
     def send_message(self, text):
-        requests.post(self.URLS['send'], json={'chat_id': self.current_chat_id, 'user_id': self.user_id, 'text': text})
+        requests.post(self.URLS['send'], json={'chat_id': self.current_chat['chat_id'], 'user_id': self.user_id, 'text': text})
 
     def get_messages(self):
         response = requests.get(self.URLS['messages'], params={'last_time': self.last_time, 'user_id': self.user_id}).json()
