@@ -25,7 +25,7 @@ class Button(tk.Button):
                  command=None,
                  height=1,
                  width=20,
-                 anchor=tk.W):
+                 anchor=tk.CENTER):
         super(Button, self).__init__(master=master,
                                      text=text,
                                      font=font,
@@ -48,7 +48,7 @@ class App(tk.Frame):
         self.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.window = None
         if client.user_name is None:
-            self.change_window('sing_up')
+            self.change_window('sing_in')
         else:
             self.change_window('main')
             self.master.title(' '.join([str(item) for key, item in client.get_user().items()]))
@@ -56,7 +56,9 @@ class App(tk.Frame):
     def change_window(self, name):
         if not self.window is None:
             self.remove_window()
-        if name == 'sing_up':
+        if name == 'sing_in':
+            self.window = Sing_in_window(self)
+        elif name == 'sing_up':
             self.window = Sing_up_window(self)
         elif name == 'main':
             self.window = Main_window(self)
@@ -66,39 +68,83 @@ class App(tk.Frame):
         self.window.destroy()
 
 
-class Sing_up_window(tk.Frame):
+class Template_start_window(tk.Frame):
     def __init__(self, master):
-        self.name = 'sing_up'
+        self.set_name()
         self.master = master
-        super(Sing_up_window, self).__init__(master=master, bg=style.bg_main)
+        super(Template_start_window, self).__init__(master=master, bg=style.bg_main)
         self.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+        self.center_frame = tk.Frame(self, bg=style.bg_main)
+        self.center_frame.place(x=self.winfo_width() // 2, y=self.winfo_height() // 2, anchor=tk.CENTER)
+        self.attention_lbl = Label(self.center_frame)
 
         self.draw_widgets()
         self.bind('<Configure>', self.resize)
 
     def draw_widgets(self):
-        self.sing_up_input = tk.Frame(self, bg=style.bg_main)
-        self.sing_up_input.place(x=self.winfo_width()//2, y=self.winfo_height()//2, anchor=tk.CENTER)
-        self.lbl_title = Label(self.sing_up_input, text='Sing up\nEnter these fields:', font='Arial 27')
-        self.lbl_title.grid(row=0, columnspan=2, ipady=10, sticky=tk.NW)
-        self.lbl_name = Label(self.sing_up_input, text='Name:')
-        self.lbl_name.grid(row=1)
-        self.input_name = tk.Entry(self.sing_up_input, font='Arial 17')
-        self.input_name.grid(row=1, column=1)
-        self.confirm_btn = Button(self.sing_up_input, text='Confirm', height=1, width=20, font='15', bg=style.bg_main, command=self.press_confirm_btn)
-        self.confirm_btn.grid(row=2, column=1, sticky=tk.NE)
-        self.attention_lbl = Label(self.sing_up_input)
-        self.attention_lbl.grid(row=3, columnspan=2, sticky=tk.NW)
+        pass
 
     def resize(self, event):
         self.update()
-        self.sing_up_input.place(x=self.winfo_width() // 2, y=self.winfo_height() // 2, anchor=tk.CENTER)
+        self.center_frame.place(x=self.winfo_width() // 2, y=self.winfo_height() // 2, anchor=tk.CENTER)
 
     def remove(self):
-        self.sing_up_input.destroy()
+        self.center_frame.destroy()
+
+    def press_confirm_btn(self):
+        pass
+
+    def show_attention(self, attention):
+        if attention == 'empty':
+            self.attention_lbl['text'] = 'empty'
+        elif attention == 'badname':
+            self.attention_lbl['text'] = 'badname'
+        elif attention == 'longname':
+            self.attention_lbl['text'] = 'longname'
+        elif attention == 'hasalready':
+            self.attention_lbl['text'] = 'hasalready'
+
+    def set_name(self):
+        self.name = 'template'
+
+    def check_name(self, name):
+        attention = client.check_name(name)
+        self.show_attention(attention=attention)
+
+
+class Sing_up_window(Template_start_window):
+    def set_name(self):
+        self.name = 'sing_up'
+
+    def draw_widgets(self):
+        self.lbl_title = Label(self.center_frame, text='Sing up\nEnter these fields:', font='Arial 27')
+        self.lbl_title.grid(row=0, columnspan=2, ipady=10, sticky=tk.NW)
+
+        self.lbl_name = Label(self.center_frame, text='Name:')
+        self.lbl_name.grid(row=1)
+
+        self.input_name = tk.Entry(self.center_frame, font='Arial 17')
+        self.input_name.grid(row=1, column=1)
+
+        self.confirm_btn = Button(self.center_frame, text='Confirm', height=1, width=20, font='15', bg=style.bg_main,
+                                  command=self.press_confirm_btn)
+        empty = Label(self.center_frame).grid(row=2)
+        self.confirm_btn.grid(row=3, column=1, sticky=tk.NE)
+        self.sing_in_btn = Button(self.center_frame, text="Sing in", height=1, font='15', bg=style.bg_main,
+                                  command=self.sing_in_press)
+        self.sing_in_btn.grid(row=3, column=0)
+        self.attention_lbl.grid(row=4, columnspan=2, sticky=tk.NW)
+
+    def sing_in_press(self):
+        app.change_window('sing_in')
 
     def press_confirm_btn(self):
         name = self.input_name.get().lower()
+        self.check_name(name=name)
+        self.input_name.delete(0, 'end')
+
+    def check_name(self, name):
         attention = client.check_name(name)
         if not attention:
             user_id = client.sing_up(name)
@@ -111,15 +157,47 @@ class Sing_up_window(tk.Frame):
         else:
             self.show_attention(attention=attention)
 
-    def show_attention(self, attention):
-        if attention == 'empty':
-            self.attention_lbl['text'] = 'empty'
-        elif attention == 'badname':
-            self.attention_lbl['text'] = 'badname'
-        elif attention == 'longname':
-            self.attention_lbl['text'] = 'longname'
-        elif attention == 'hasalready':
-            self.attention_lbl['text'] = 'hasalready'
+
+class Sing_in_window(Template_start_window):
+    def set_name(self):
+        self.name = 'sing_in'
+
+    def draw_widgets(self):
+        self.lbl_title = Label(self.center_frame, text='Sing in\nEnter these fields:', font='Arial 27')
+        self.lbl_title.grid(row=0, columnspan=2, ipady=10, sticky=tk.NW)
+        self.lbl_name = Label(self.center_frame, text='Name:')
+        self.lbl_name.grid(row=1)
+        self.input_name = tk.Entry(self.center_frame, font='Arial 17')
+        self.input_name.grid(row=1, column=1)
+        self.confirm_btn = Button(self.center_frame, text='Confirm', height=1, width=20, font='15', bg=style.bg_main,
+                                  command=self.press_confirm_btn)
+        empty = Label(self.center_frame).grid(row=2)
+        self.confirm_btn.grid(row=3, column=1, sticky=tk.NE)
+        self.sing_up_btn = Button(self.center_frame, text="Sing up", height=1, font='15', bg=style.bg_main,
+                                  command=self.sing_up_press)
+        self.sing_up_btn.grid(row=3, column=0)
+        self.attention_lbl.grid(row=4, columnspan=2, sticky=tk.NW)
+
+    def press_confirm_btn(self):
+        name = self.input_name.get().lower()
+        self.check_name(name=name)
+
+    def sing_up_press(self):
+        app.change_window('sing_up')
+
+    def check_name(self, name):
+        attention = client.check_name(name)
+        if not attention:
+            user_id = client.sing_in(name)
+            if user_id is None:
+                self.show_attention(attention='wrong name')
+            else:
+                client.set_user(user_name=name, user_id=user_id)
+                self.master.change_window('main')
+                db.save_user_if_not_exists(client.get_user())
+                return
+        else:
+            self.show_attention(attention=attention)
         self.input_name.delete(0, 'end')
 
 
@@ -217,8 +295,12 @@ class Menu(tk.Canvas):
         self.add_widgets()
 
     def add_widgets(self):
-        self.menu_btn = Button(self, text="Menu", width=self.btn_size[0], height=self.btn_size[1])
-        self.menu_btn.pack(side=tk.LEFT)
+        self.log_out = Button(self, text="Log Out", width=self.btn_size[0], height=self.btn_size[1], command=self.press_log_out)
+        self.log_out.pack(side=tk.LEFT)
+
+    def press_log_out(self):
+        db.remove_user()
+        app.change_window(name='sing_in')
 
 
 class Contacts(tk.Canvas):
@@ -464,7 +546,8 @@ def connect_db2client():
 
 def stop():
     global run
-    db.save_user_if_not_exists(client.get_user())
+    if app.window.name == 'main':
+        db.save_user_if_not_exists(client.get_user())
     run = False
 
 
@@ -480,9 +563,13 @@ def run_app():
             # print(client.get_messages())
             new_messages = client.get_messages()
             if not new_messages is None:
-                app.window.workspace.messages_space.add_messages(new_messages)
+                try:
+                    app.window.workspace.messages_space.add_messages(new_messages)
+                except:
+                    pass
                 db.save_messages(new_messages)
                 app.window.update_data()
+        if counter >= 240:
             counter = 0
         time.sleep(0.01)
         counter += 1

@@ -40,6 +40,7 @@ class DB:
 
     def remove_user(self):
         self.c.execute('''DELETE From User''')
+        self.c.execute('''DELETE From Messages''')
         self.conn.commit()
 
     def save_messages(self, messages: list) -> dict:
