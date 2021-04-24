@@ -33,7 +33,8 @@ class DB:
         conn = self.connect_bd()
         cur = conn.cursor()
         cur.execute('''CREATE TABLE IF NOT EXISTS Users (id integer primary key,
-                                                            name text)''')
+                                                            name text, 
+                                                            password text)''')
         cur.execute('''CREATE TABLE IF NOT EXISTS Messages (id integer primary key,
                                                                chat_id integer,
                                                                user_id integer,
@@ -51,14 +52,14 @@ class DB:
     def connect_bd(self):
         return sqlite3.connect('VMessangerS.db')
 
-    def add_user(self, name):
+    def add_user(self, name, password):
         if name == 'name':
             return False
         conn = self.connect_bd()
         cur = conn.cursor()
-        user_id = self.get_user_id(name)
+        user_id = self.get_user_id(name=password, password=password)
         if user_id is None:
-            cur.execute(f'''INSERT INTO Users (name) VALUES ("{name}")''')
+            cur.execute(f'''INSERT INTO Users (name, password) VALUES ("{name}", "{password}")''')
             conn.commit()
             result = True
         else:
@@ -211,10 +212,10 @@ class DB:
                 result = None
         return result
 
-    def get_user_id(self, name):
+    def get_user_id(self, name, password):
         conn = self.connect_bd()
         cur = conn.cursor()
-        user_id = [i for i in cur.execute(f'''SELECT id FROM Users WHERE name="{name}"''')]
+        user_id = [i for i in cur.execute(f'''SELECT id FROM Users WHERE name="{name}" AND password="{password}"''')]
         result = None
         if user_id != []:
             result = user_id[0][0]

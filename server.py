@@ -17,28 +17,45 @@ def hello():
 def sing_up():
     user = request.json
     if not isinstance(user, dict) or \
-            set(user) != {'name'}:
+            set(user) != {'name', 'password'}:
         return abort(400)
 
     name = user['name']
-
-    if not isinstance(name, str):
+    password = user['password']
+    if not isinstance(name, str) and isinstance(password, str):
         return abort(400)
-    confirm_added = db.add_user(name)
+    result_check_password = check_password(password=password)
+    if not result_check_password['result']:
+        return {'password': result_check_password['notice']}
+
+    confirm_added = db.add_user(name=name, password=password)
     if confirm_added:
-        return {'user_id': db.get_user_id(name)}
+        return {'user_id': db.get_user_id(name=name, password=password)}
     else:
         return {'user_id': None}
 
+
+def check_password(password: str) -> dict:
+    result = {'result': True, 'notice': 'ok'}
+    if len(password) <= 8:
+        result = {'result': False, 'notice': 'smallpassword'}
+    elif password.isdigit():
+        result = {'result': False, 'notice': 'needletter'}
+    elif password == password.lower():
+        result = {'result': False, 'notice': 'needupper'}
+    elif password == password.upper():
+        result = {'result': False, 'notice': 'needlower'}
+    return result
 
 @app.route("/sing_in", methods=['GET'])
 def sing_in():
     try:
         name = request.args['name']
+        password = request.args['password']
     except:
         return abort(400)
 
-    return {'user_id': db.get_user_id(name)}
+    return {'user_id': db.get_user_id(name=name, password=password)}
 
 
 @app.route("/send", methods=['POST'])

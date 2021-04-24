@@ -11,8 +11,8 @@ class Entry(tk.Entry):
 
 
 class Label(tk.Label):
-    def __init__(self, master, text='', font='Arial 12', justify=tk.LEFT, bg=style.bg_main, height=None, width=None):
-        super(Label, self).__init__(master=master, text=text, font=font, justify=justify, bg=bg, width=width, height=height)
+    def __init__(self, master, text='', font='Arial 12', justify=tk.LEFT, bg=style.bg_main, height=None, width=None, anchor=None):
+        super(Label, self).__init__(master=master, text=text, font=font, justify=justify, bg=bg, width=width, height=height, anchor=anchor)
 
 
 class Button(tk.Button):
@@ -121,20 +121,42 @@ class Sing_up_window(Template_start_window):
         self.lbl_title = Label(self.center_frame, text='Sing up\nEnter these fields:', font='Arial 27')
         self.lbl_title.grid(row=0, columnspan=2, ipady=10, sticky=tk.NW)
 
-        self.lbl_name = Label(self.center_frame, text='Name:')
+        self.lbl_name = Label(self.center_frame, text='Name:', width=13, justify=tk.LEFT, anchor=tk.W)
         self.lbl_name.grid(row=1)
-
         self.input_name = tk.Entry(self.center_frame, font='Arial 17')
         self.input_name.grid(row=1, column=1)
+        self.input_name.focus()
+
+        self.lbl_password = Label(self.center_frame, text='Write password:', width=13, justify=tk.LEFT, anchor=tk.W)
+        self.lbl_password.grid(row=2)
+        self.input_password = tk.Entry(self.center_frame, font='Arial 17', show="*")
+        self.input_password.grid(row=2, column=1)
+        self.show_password_btn = Button(self.center_frame, text='show', width=4, command=self.show_password)
+        self.show_password_btn.grid(row=2, column=2)
+
+        self.lbl_password_again = Label(self.center_frame, text='Password again:', width=13, justify=tk.LEFT, anchor=tk.W)
+        self.lbl_password_again.grid(row=3)
+        self.input_password_again = tk.Entry(self.center_frame, font='Arial 17', show="*")
+        self.input_password_again.grid(row=3, column=1)
+
+        empty = Label(self.center_frame).grid(row=4)
 
         self.confirm_btn = Button(self.center_frame, text='Confirm', height=1, width=20, font='15', bg=style.bg_main,
                                   command=self.press_confirm_btn)
-        empty = Label(self.center_frame).grid(row=2)
-        self.confirm_btn.grid(row=3, column=1, sticky=tk.NE)
+        self.confirm_btn.grid(row=5, column=1, sticky=tk.NE)
+
         self.sing_in_btn = Button(self.center_frame, text="Sing in", height=1, font='15', bg=style.bg_main,
                                   command=self.sing_in_press)
-        self.sing_in_btn.grid(row=3, column=0)
-        self.attention_lbl.grid(row=4, columnspan=2, sticky=tk.NW)
+        self.sing_in_btn.grid(row=5, column=0)
+        self.attention_lbl.grid(row=6, columnspan=2, sticky=tk.NW)
+
+    def show_password(self):
+        if self.input_password['show'] == '*':
+            self.input_password['show'] = ''
+            self.input_password_again['show'] = ''
+        else:
+            self.input_password['show'] = '*'
+            self.input_password_again['show'] = '*'
 
     def sing_in_press(self):
         app.change_window('sing_in')

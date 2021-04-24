@@ -12,6 +12,7 @@ class DB:
         self.c = self.conn.cursor()
         self.c.execute('''CREATE TABLE IF NOT EXISTS User (id integer,
                                                            name text,
+                                                           password text,
                                                            last_time text)''')
         self.c.execute('''CREATE TABLE IF NOT EXISTS Messages(id integer, 
                                                                 chat_id integer,
@@ -20,16 +21,19 @@ class DB:
                                                                 time text)''')
 
     def save_user_if_not_exists(self, user: dict):
-        if set(user) != {'id', 'name', 'last_time'}:
+        if set(user) != {'id', 'name', 'last_time', 'password'}:
             # print('non')
             return 0
         # print(user['id'], user['name'], user['last_time'])
-        if self.get_user()['user_id'] is None:
-            self.c.execute('''INSERT INTO User (id, name, last_time) VALUES (?, ?, ?)''',
-                           (user['id'], user['name'], user['last_time']))
+        user_id = self.get_user()['user_id']
+        if user_id is None:
+            self.c.execute('''INSERT INTO User (id, name, last_time, password) VALUES (?, ?, ?, ?)''',
+                           (user['id'], user['name'], user['last_time'], user['password']))
+        elif user_id == user['id']:
+            self.c.execute('''UPDATE User SET last_time=?, name=?, password=? WHERE id=?''',
+                           (user['last_time'], user['name'], user['password'], user['id']))
         else:
-            self.c.execute('''UPDATE User SET last_time=?, name=? WHERE id=?''',
-                           (user['last_time'], user['name'], user['id']))
+            return 0
         self.conn.commit()
 
     def get_user(self):
