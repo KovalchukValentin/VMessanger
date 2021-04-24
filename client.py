@@ -27,10 +27,10 @@ class Client:
             self.user_id = user_id
             self.user_name = user_name
             self.last_time = last_time
-        elif not user_name is None:
-            self.user_name = user_name
-            self.user_id = self.sing_up(self.user_name)
-            self.last_time = last_time
+        # elif not user_name is None:
+        #     self.user_name = user_name
+        #     self.user_id = self.sing_up(self.user_name)
+        #     self.last_time = last_time
 
     def get_user(self):
         return {'id': self.user_id, 'name': self.user_name, 'last_time': self.last_time}
@@ -46,14 +46,20 @@ class Client:
         self.last_time = response['time']
         return response['messages']
 
-    def sing_up(self, name):
-        if name is None:
+    def sing_up(self, name: str, password: str):
+        if name is None or password is None:
             return None
 
-        user_id = requests.post(self.URLS['sing_up'], json={'name': name}).json()['user_id']
-        if user_id is None:
+        if not isinstance(name, str) or not isinstance(password, str):
             return None
-        return user_id
+
+        response = requests.post(self.URLS['sing_up'], json={'name': name, 'password': password}).json()['user_id']
+        if response is None:
+            return None
+        if set(response) == {'password'}:
+            return {'attention': response['password']}
+        if set(response) == {'user_id'}:
+            return response['user_id']
 
     def sing_in(self, name):
         user_id = requests.get(self.URLS['sing_in'], params={'name': name}).json()['user_id']
@@ -84,7 +90,20 @@ class Client:
         for letter in name:
             if not letter in good_letters:
                 return 'badname'
-        return 0
+        return None
+
+    def check_password(self, password):
+        attention = None
+        if len(password) < 8:
+            attention = 'smallpassword'
+        elif password.isdigit():
+            attention = 'needletter'
+        elif password == password.lower():
+            attention = 'needupper'
+        elif password == password.upper():
+            attention = 'needlower'
+        print(password, attention)
+        return attention
 
     def get_chat_id(self, contact_id):
         if not isinstance(contact_id, int):

@@ -104,6 +104,16 @@ class Template_start_window(tk.Frame):
             self.attention_lbl['text'] = 'longname'
         elif attention == 'hasalready':
             self.attention_lbl['text'] = 'hasalready'
+        elif attention == 'smallpassword':
+            self.attention_lbl['text'] = 'smallpassword'
+        elif attention == 'needletter':
+            self.attention_lbl['text'] = 'needletter'
+        elif attention == 'needupper':
+            self.attention_lbl['text'] = 'needupper'
+        elif attention == 'needlower':
+            self.attention_lbl['text'] = 'needlower'
+        elif attention == 'passwordsnotequal':
+            self.attention_lbl['text'] = 'passwordsnotequal'
 
     def set_name(self):
         self.name = 'template'
@@ -163,21 +173,32 @@ class Sing_up_window(Template_start_window):
 
     def press_confirm_btn(self):
         name = self.input_name.get().lower()
-        self.check_name(name=name)
-        self.input_name.delete(0, 'end')
-
-    def check_name(self, name):
+        password = self.input_password.get()
+        password_again = self.input_password_again.get()
         attention = client.check_name(name)
-        if not attention:
-            user_id = client.sing_up(name)
+        if password == password_again:
+            attention = client.check_password(password)
+        else:
+            attention = 'passwordsnotequal'
+        if attention is None:
+            user_id = client.sing_up(name=name, password=password)
             if user_id is None:
-                self.show_attention(attention='hasalready')
+                attention='hasalready'
+            elif set(user_id) == {'attention'}:
+                attention = user_id['attention']
             else:
                 client.set_user(user_name=name, user_id=user_id)
                 self.master.change_window('main')
                 db.save_user_if_not_exists(client.get_user())
-        else:
-            self.show_attention(attention=attention)
+                return
+        self.clear_entries()
+        self.show_attention(attention=attention)
+
+    def clear_entries(self):
+        self.input_name.delete(0, 'end')
+        self.input_password.delete(0, 'end')
+        self.input_password_again.delete(0, 'end')
+        self.input_name.focus()
 
 
 class Sing_in_window(Template_start_window):

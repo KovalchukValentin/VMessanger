@@ -37,7 +37,7 @@ def sing_up():
 
 def check_password(password: str) -> dict:
     result = {'result': True, 'notice': 'ok'}
-    if len(password) <= 8:
+    if len(password) < 8:
         result = {'result': False, 'notice': 'smallpassword'}
     elif password.isdigit():
         result = {'result': False, 'notice': 'needletter'}
