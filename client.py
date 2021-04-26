@@ -62,8 +62,8 @@ class Client:
         if set(response) == {'user_id'}:
             return {'user_id': response['user_id']}
 
-    def sing_in(self, name):
-        user_id = requests.get(self.URLS['sing_in'], params={'name': name}).json()['user_id']
+    def sing_in(self, name, password):
+        user_id = requests.get(self.URLS['sing_in'], params={'name': name, 'password': password}).json()['user_id']
         return user_id
 
     def create_chat(self, user2_id):

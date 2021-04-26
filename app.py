@@ -96,24 +96,26 @@ class Template_start_window(tk.Frame):
         pass
 
     def show_attention(self, attention):
-        if attention == 'empty':
-            self.attention_lbl['text'] = 'empty'
-        elif attention == 'badname':
-            self.attention_lbl['text'] = 'badname'
-        elif attention == 'longname':
-            self.attention_lbl['text'] = 'longname'
-        elif attention == 'hasalready':
-            self.attention_lbl['text'] = 'hasalready'
-        elif attention == 'smallpassword':
-            self.attention_lbl['text'] = 'smallpassword'
-        elif attention == 'needletter':
-            self.attention_lbl['text'] = 'needletter'
-        elif attention == 'needupper':
-            self.attention_lbl['text'] = 'needupper'
-        elif attention == 'needlower':
-            self.attention_lbl['text'] = 'needlower'
-        elif attention == 'passwordsnotequal':
-            self.attention_lbl['text'] = 'passwordsnotequal'
+        self.attention_lbl['text'] = attention
+        # if attention == 'empty':
+        #     self.attention_lbl['text'] = 'empty'
+        # elif attention == 'badname':
+        #     self.attention_lbl['text'] = 'badname'
+        # elif attention == 'longname':
+        #     self.attention_lbl['text'] = 'longname'
+        # elif attention == 'hasalready':
+        #     self.attention_lbl['text'] = 'hasalready'
+        # elif attention == 'smallpassword':
+        #     self.attention_lbl['text'] = 'smallpassword'
+        # elif attention == 'needletter':
+        #     self.attention_lbl['text'] = 'needletter'
+        # elif attention == 'needupper':
+        #     self.attention_lbl['text'] = 'needupper'
+        # elif attention == 'needlower':
+        #     self.attention_lbl['text'] = 'needlower'
+        # elif attention == 'passwordsnotequal':
+        #     self.attention_lbl['text'] = 'passwordsnotequal'
+        #
 
     def set_name(self):
         self.name = 'template'
@@ -209,41 +211,58 @@ class Sing_in_window(Template_start_window):
     def draw_widgets(self):
         self.lbl_title = Label(self.center_frame, text='Sing in\nEnter these fields:', font='Arial 27')
         self.lbl_title.grid(row=0, columnspan=2, ipady=10, sticky=tk.NW)
-        self.lbl_name = Label(self.center_frame, text='Name:')
+
+        self.lbl_name = Label(self.center_frame, text='Name:', width=13, justify=tk.LEFT, anchor=tk.W)
         self.lbl_name.grid(row=1)
         self.input_name = tk.Entry(self.center_frame, font='Arial 17')
         self.input_name.grid(row=1, column=1)
+        self.input_name.focus()
+
+        self.lbl_password = Label(self.center_frame, text='Password:', width=13, justify=tk.LEFT, anchor=tk.W)
+        self.lbl_password.grid(row=2)
+        self.input_password = tk.Entry(self.center_frame, font='Arial 17', show="*")
+        self.input_password.grid(row=2, column=1)
+        self.show_password_btn = Button(self.center_frame, text='show', width=4, command=self.show_password)
+        self.show_password_btn.grid(row=2, column=2)
+
+        empty = Label(self.center_frame).grid(row=3)
         self.confirm_btn = Button(self.center_frame, text='Confirm', height=1, width=20, font='15', bg=style.bg_main,
                                   command=self.press_confirm_btn)
-        empty = Label(self.center_frame).grid(row=2)
-        self.confirm_btn.grid(row=3, column=1, sticky=tk.NE)
+        self.confirm_btn.grid(row=4, column=1, sticky=tk.NE)
         self.sing_up_btn = Button(self.center_frame, text="Sing up", height=1, font='15', bg=style.bg_main,
                                   command=self.sing_up_press)
-        self.sing_up_btn.grid(row=3, column=0)
-        self.attention_lbl.grid(row=4, columnspan=2, sticky=tk.NW)
+        self.sing_up_btn.grid(row=4, column=0)
+        self.attention_lbl.grid(row=5, columnspan=2, sticky=tk.NW)
 
     def press_confirm_btn(self):
         name = self.input_name.get().lower()
-        self.check_name(name=name)
-
-    def sing_up_press(self):
-        app.change_window('sing_up')
-
-    def check_name(self, name):
+        password = self.input_password.get()
         attention = client.check_name(name)
-        if not attention:
-            user_id = client.sing_in(name)
+        if attention is None:
+            user_id = client.sing_in(name=name, password=password)
             if user_id is None:
-                self.show_attention(attention='wrong name')
+                self.show_attention(attention='wrong name or password')
             else:
                 client.set_user(user_name=name, user_id=user_id)
                 self.master.change_window('main')
                 db.save_user_if_not_exists(client.get_user())
                 return
         else:
-            self.show_attention(attention=attention)
-        self.input_name.delete(0, 'end')
+            self.show_attention(attention)
+        self.clear_entries()
 
+    def sing_up_press(self):
+        app.change_window('sing_up')
+
+    def show_password(self):
+        if self.input_password['show'] == '*':
+            self.input_password['show'] = ''
+        else:
+            self.input_password['show'] = '*'
+
+    def clear_entries(self):
+        self.input_name.delete(0, 'end')
+        self.input_password.delete(0, 'end')
 
 class Main_window(tk.Canvas):
     def __init__(self, master):
