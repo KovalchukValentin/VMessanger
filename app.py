@@ -181,18 +181,19 @@ class Sing_up_window(Template_start_window):
         else:
             attention = 'passwordsnotequal'
         if attention is None:
-            user_id = client.sing_up(name=name, password=password)
-            if user_id is None:
+            response = client.sing_up(name=name, password=password)
+            if response is None:
                 attention='hasalready'
-            elif set(user_id) == {'attention'}:
-                attention = user_id['attention']
+            elif set(response) == {'attention'}:
+                attention = response['attention']
             else:
-                client.set_user(user_name=name, user_id=user_id)
+                client.set_user(user_name=name, user_id=response['user_id'])
                 self.master.change_window('main')
                 db.save_user_if_not_exists(client.get_user())
                 return
         self.clear_entries()
         self.show_attention(attention=attention)
+
 
     def clear_entries(self):
         self.input_name.delete(0, 'end')
@@ -435,7 +436,7 @@ class Workspace(tk.Canvas):
         # print(self.message_input.get())
 
     def press_send(self, event=None):
-        self.send()
+        self._send()
         self.clr_text()
         self.correct_height_textbox()
 
@@ -450,7 +451,7 @@ class Workspace(tk.Canvas):
             self.message_input.config(height=count_of_lines)
             self.messages_space.resize_space()
 
-    def send(self):
+    def _send(self):
         text = self.message_input.get("0.0", 'end')
         client.send_message(self.format_send(text, len_str=50))
 

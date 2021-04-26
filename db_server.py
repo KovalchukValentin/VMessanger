@@ -52,13 +52,23 @@ class DB:
     def connect_bd(self):
         return sqlite3.connect('VMessangerS.db')
 
+    def check_used_name(self, name):
+        conn = self.connect_bd()
+        cur = conn.cursor()
+        user_id = [i for i in cur.execute(f'''SELECT id FROM Users WHERE name="{name}"''')]
+        result = False
+        if user_id != []:
+            result = True
+        conn.close()
+        return result
+
     def add_user(self, name, password):
         if name == 'name':
             return False
         conn = self.connect_bd()
         cur = conn.cursor()
-        user_id = self.get_user_id(name=password, password=password)
-        if user_id is None:
+        is_used_name = self.check_used_name(name=name)
+        if not is_used_name:
             cur.execute(f'''INSERT INTO Users (name, password) VALUES ("{name}", "{password}")''')
             conn.commit()
             result = True
@@ -92,7 +102,7 @@ class DB:
     def add_contact(self, user_id: int, contact_name: str):
         if contact_name == 'name':
             return {'result': 'is_not_exist'}
-        need_add_contact_id = self.get_user_id(contact_name)
+        need_add_contact_id = self.get_contact_id(contact_name)
         contacts_id = self.get_contacts(user_id=user_id)
 
         if need_add_contact_id is None:
@@ -210,6 +220,16 @@ class DB:
                     result.append(chat_id[0])
             elif i == 2 and result == []:
                 result = None
+        return result
+
+    def get_contact_id(self, name):
+        conn = self.connect_bd()
+        cur = conn.cursor()
+        user_id = [i for i in cur.execute(f'''SELECT id FROM Users WHERE name="{name}"''')]
+        result = None
+        if user_id != []:
+            result = user_id[0][0]
+        conn.close()
         return result
 
     def get_user_id(self, name, password):

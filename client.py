@@ -53,13 +53,14 @@ class Client:
         if not isinstance(name, str) or not isinstance(password, str):
             return None
 
-        response = requests.post(self.URLS['sing_up'], json={'name': name, 'password': password}).json()['user_id']
+        response = requests.post(self.URLS['sing_up'], json={'name': name, 'password': password}).json()
+        print(response)
         if response is None:
             return None
         if set(response) == {'password'}:
             return {'attention': response['password']}
         if set(response) == {'user_id'}:
-            return response['user_id']
+            return {'user_id': response['user_id']}
 
     def sing_in(self, name):
         user_id = requests.get(self.URLS['sing_in'], params={'name': name}).json()['user_id']
