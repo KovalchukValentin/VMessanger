@@ -16,7 +16,8 @@ class Client:
                      'chat_id': URL + "chat_id"}
         self.current_chat = None
 
-    def set_user(self, last_time=None, user_name=None, user_id=None):
+    def set_user(self, last_time=None, user_name=None, user_id=None, password=None):
+        print(last_time, user_name, user_id)
         if last_time is None:
             last_time = "0-0-0 0:0:0:0"
         if user_name is None and user_id is None:
@@ -27,13 +28,14 @@ class Client:
             self.user_id = user_id
             self.user_name = user_name
             self.last_time = last_time
+        self.password = password
         # elif not user_name is None:
         #     self.user_name = user_name
         #     self.user_id = self.sing_up(self.user_name)
         #     self.last_time = last_time
 
     def get_user(self):
-        return {'id': self.user_id, 'name': self.user_name, 'last_time': self.last_time}
+        return {'id': self.user_id, 'name': self.user_name, 'last_time': self.last_time, 'password': self.password}
 
     def send_message(self, text):
         requests.post(self.URLS['send'], json={'chat_id': self.current_chat['chat_id'], 'user_id': self.user_id, 'text': text})
@@ -54,7 +56,6 @@ class Client:
             return None
 
         response = requests.post(self.URLS['sing_up'], json={'name': name, 'password': password}).json()
-        print(response)
         if response is None:
             return None
         if set(response) == {'password'}:
@@ -103,7 +104,6 @@ class Client:
             attention = 'needupper'
         elif password == password.upper():
             attention = 'needlower'
-        print(password, attention)
         return attention
 
     def get_chat_id(self, contact_id):

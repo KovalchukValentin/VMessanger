@@ -243,9 +243,9 @@ class Sing_in_window(Template_start_window):
             if user_id is None:
                 self.show_attention(attention='wrong name or password')
             else:
-                client.set_user(user_name=name, user_id=user_id)
-                self.master.change_window('main')
+                client.set_user(user_name=name, user_id=user_id, password=password)
                 db.save_user_if_not_exists(client.get_user())
+                self.master.change_window('main')
                 return
         else:
             self.show_attention(attention)
@@ -589,11 +589,16 @@ class Message(tk.Frame):
         self.chat_id = message['chat_id']
         self.user_id = message['user_id']
         self.text = message['text']
-        self.time = message['time']
+        self.time = self.format_time(message['time'])
         self.show_text = self.format_message()
 
     def format_message(self):
         return f"{self.get_name(self.user_id)}:\n{self.text}\n{self.time}"
+
+    def format_time(self, time):
+        if not db.is_date_be_before(db.get_current_day(), time):
+            return time.split()[1][:5]
+        return time[:16]
 
     def get_name(self, user_id):
         if user_id == client.user_id:

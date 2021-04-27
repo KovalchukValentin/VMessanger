@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 
 # User
 # user_id
@@ -21,6 +22,7 @@ class DB:
                                                                 time text)''')
 
     def save_user_if_not_exists(self, user: dict):
+        print(user)
         if set(user) != {'id', 'name', 'last_time', 'password'}:
             # print('non')
             return 0
@@ -37,10 +39,10 @@ class DB:
         self.conn.commit()
 
     def get_user(self):
-        user = [i for i in self.c.execute('''SELECT id, name, last_time FROM User''')]
+        user = [i for i in self.c.execute('''SELECT id, name, last_time, password FROM User''')]
         if user == []:
-            return {'user_id': None, 'user_name': None, 'last_time': None}
-        return {'user_id': user[0][0], 'user_name': user[0][1], 'last_time': user[0][2]}
+            return {'user_id': None, 'user_name': None, 'last_time': None, "password": None}
+        return {'user_id': user[0][0], 'user_name': user[0][1], 'last_time': user[0][2], 'password': user[0][3]}
 
     def remove_user(self):
         self.c.execute('''DELETE From User''')
@@ -76,3 +78,21 @@ class DB:
         if result == []:
             result = None
         return result
+
+    def get_now_time(self):
+        return datetime.now().strftime(self.dateformat)
+
+    def get_current_day(self):
+        return datetime.now().strftime(self.dateformat).split()[0] + " 0:0:0:0"
+
+    def is_date_be_before(self, date, check_date):
+        date, check_date = date.split(), check_date.split()
+        date = date[0].split("-")[::-1] + date[1].split(":")
+        check_date = check_date[0].split("-")[::-1] + check_date[1].split(":")
+        for i in range(len(date)):
+            if int(date[i]) > int(check_date[i]):
+                return True
+            if int(date[i]) == int(check_date[i]):
+                continue
+            return False
+        return False
