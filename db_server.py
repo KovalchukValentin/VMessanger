@@ -99,17 +99,24 @@ class DB:
         conn.close()
         return result
 
-    def add_contact(self, user_id: int, contact_name: str):
+    def add_contact(self, user_id: int, contact_name=None, contact_id=None):
+        if not contact_name is None:
+            need_add_contact_id = self.get_contact_id(contact_name)
+        elif not contact_id is None:
+            need_add_contact_id = contact_id
+        else:
+            return {'result': 'wrong_input'}
+
         if contact_name == 'name':
-            return {'result': 'is_not_exist'}
-        need_add_contact_id = self.get_contact_id(contact_name)
+            return {'result': 'contact_is_not_exist'}
+
         contacts_id = self.get_contacts(user_id=user_id)
 
         if need_add_contact_id is None:
-            return {'result': 'is_not_exist'}
+            return {'result': 'contact_is_not_exist'}
 
         if self.isincontacts(user_id, need_add_contact_id):
-            return {'result': 'is_in_contacts'}
+            return {'result': 'contact_is_in_contacts'}
 
         if need_add_contact_id == user_id:
             return {'result': 'is_your_name'}
@@ -188,7 +195,6 @@ class DB:
         if contacts is None:
             return False
         for contact in contacts:
-            print(contact, contact_id)
             if int(contact) == int(contact_id):
                 return True
         return False

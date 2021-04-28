@@ -29,6 +29,10 @@ class Client:
             self.user_name = user_name
             self.last_time = last_time
         self.password = password
+        try:
+            self.contacts = self.get_contacts()
+        except:
+            pass
         # elif not user_name is None:
         #     self.user_name = user_name
         #     self.user_id = self.sing_up(self.user_name)
@@ -70,8 +74,12 @@ class Client:
     def create_chat(self, user2_id):
         response = requests.get(url=self.URLS['create_chat'], params={'user1_id': self.user_id, 'user2_id': user2_id})
 
-    def add_contact(self, contact_name):
-        response = requests.post(self.URLS['add_contact'], json={'user_id': self.user_id, 'contact_name': contact_name}).json()
+    def add_contact(self, contact_name=None, contact_id=None):
+        response = requests.post(self.URLS['add_contact'], json={'user_id': self.user_id,
+                                                                 'contact_name': contact_name,
+                                                                 'contact_id': contact_id}).json()
+        if response['request'] == 'ok':
+            self.contacts = self.get_contacts()
         return response['request']
 
     # def log_out(self):
@@ -111,6 +119,19 @@ class Client:
             return
         response = requests.get(url=self.URLS['chat_id'], params={'user_id': self.user_id, 'contact_id': contact_id}).json()
         return response['chat_id']
+
+    def isincontacts(self, contact_id):
+        if contact_id == self.user_id:
+            return True
+        if self.contacts is None:
+            return False
+        contacts = [contact_id[0] for contact_id in self.contacts]
+        if contacts is None:
+            return False
+        for contact in contacts:
+            if int(contact) == int(contact_id):
+                return True
+        return False
 
 
 

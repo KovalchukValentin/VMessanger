@@ -125,23 +125,20 @@ def get_chat_id():
 @app.route('/add_contact', methods=['POST'])
 def add_contact():
     users = request.json
-    if not isinstance(users, dict) or set(users) != {'user_id', 'contact_name'}:
+    if not isinstance(users, dict) or set(users) != {'user_id', 'contact_name', 'contact_id'}:
         return abort(400)
 
     user_id = users['user_id']
     contact_name = users['contact_name']
+    contact_id = users['contact_id']
 
-    if not isinstance(user_id, int) or not isinstance(contact_name, str):
+    if not isinstance(user_id, int) \
+            or not isinstance(contact_name, str) and not contact_name is None\
+            or not isinstance(contact_id, int) and not contact_id is None:
         return abort(400)
 
-    result = db.add_contact(user_id=user_id, contact_name=contact_name)
-    if result['result'] == 'is_your_name':
-        return {'request': 'is_your_name'}
-    if result['result'] == 'is_not_exist':
-        return {'request': 'contact_is_not_exist'}
-    if result['result'] == 'is_in_contacts':
-        return {'request': 'contact_is_in_contacts'}
-    return {'request': 'ok'}
+    result = db.add_contact(user_id=user_id, contact_name=contact_name, contact_id=contact_id)['result']
+    return {'request': result}
 
 
 @app.route('/contacts')

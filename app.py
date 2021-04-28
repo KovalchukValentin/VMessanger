@@ -382,10 +382,9 @@ class Contacts(tk.Canvas):
     def show_contacts(self):
         self.frame = tk.Frame(self)
         self.create_window(0, 0, anchor=tk.NW, window=self.frame)
-        self.contacts = client.get_contacts()
-        if not self.contacts is None:
+        if not client.contacts is None:
             self.contact_btns = []
-            for contact_id, contact_name in self.contacts:
+            for contact_id, contact_name in client.contacts:
                 self.contact_btns.append(Contact(master=self.frame, name=str(contact_name), contact_id=contact_id))
         self.update_idletasks()
 
@@ -404,6 +403,7 @@ class Contact(Button):
                                       text=self.name.title(),
                                       width=self.btn_size[0],
                                       height=self.btn_size[1], command=self.press)
+        self.pack()
         self.pack()
 
     def press(self):
@@ -631,6 +631,10 @@ def run_app():
             # print(client.get_messages())
             new_messages = client.get_messages()
             if not new_messages is None:
+                for new_message in new_messages:
+                    if not client.isincontacts(new_message['user_id']):
+                        client.add_contact(contact_id=new_message['user_id'])
+                        app.window.leftbar.contacts.update_contacts()
                 try:
                     app.window.workspace.messages_space.add_messages(new_messages)
                 except:
