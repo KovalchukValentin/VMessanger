@@ -397,13 +397,15 @@ class Contacts(tk.Canvas):
 
     def add_contact(self, contact_name, contact_id):
         self.contact_btns.append(Contact(master=self.frame, name=str(contact_name), contact_id=contact_id))
+        self.update_idletasks()
+        self.configure(scrollregion=self.bbox(tk.ALL))
 
     def update_contacts(self):
         for contact in self.contact_btns:
             contact.update_contact()
         # self.frame.destroy()
         # self.show_contacts()
-        self.configure(scrollregion=self.bbox(tk.ALL))
+
 
 
 class Contact(Button):
@@ -466,7 +468,7 @@ class Workspace(tk.Canvas):
         if not client.current_chat is None:
             contact_name = client.current_chat['contact_name'].title()
             try:
-                self.title['text'] = contact_name.title()
+                self.title['text'] = contact_name
                 self.clr_text()
                 self.correct_height_textbox()
                 self.messages_space.show_messages()
