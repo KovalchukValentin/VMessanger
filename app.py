@@ -25,7 +25,8 @@ class Button(tk.Button):
                  command=None,
                  height=1,
                  width=20,
-                 anchor=tk.CENTER):
+                 anchor=tk.CENTER,
+                 state=tk.NORMAL):
         super(Button, self).__init__(master=master,
                                      text=text,
                                      font=font,
@@ -34,7 +35,8 @@ class Button(tk.Button):
                                      command=command,
                                      height=height,
                                      width=width,
-                                     anchor=anchor)
+                                     anchor=anchor,
+                                     state=state)
 
 
 class App(tk.Frame):
@@ -362,6 +364,7 @@ class Menu(tk.Canvas):
         self.log_out.pack(side=tk.LEFT)
 
     def press_log_out(self):
+        client.log_out()
         db.remove_user()
         app.change_window(name='sing_in')
 
@@ -369,6 +372,7 @@ class Menu(tk.Canvas):
 class Contacts(tk.Canvas):
     def __init__(self, master):
         self.master = master
+        self.active_contact = None
         super(Contacts, self).__init__(master=self.master)
         self.show_contacts()
         self.add_scroll()
@@ -395,23 +399,37 @@ class Contacts(tk.Canvas):
 
 
 class Contact(Button):
-    def __init__(self, master, name, contact_id):
+    def __init__(self, master, name, contact_id, isnew=False):
+        self.master = master
         self.contact_id = int(contact_id)
         self.name = name
+        self.count_new_message = 0
+        self.isnew = isnew
         self.btn_size = (28, 3)
+        self.text = f'{self.name.title()}'
+        if self.isnew:
+            self.text += ' (new)'
+        if self.count_new_message != 0:
+            self.text += f' ({self.count_new_message})'
+
         super(Contact, self).__init__(master=master,
-                                      text=self.name.title(),
+                                      text=self.text,
                                       width=self.btn_size[0],
                                       height=self.btn_size[1], command=self.press)
-        self.pack()
+
+        if not client.current_chat is None:
+            if client.current_chat['contact_id'] == self.contact_id:
+                self['state'] = tk.DISABLED
         self.pack()
 
     def press(self):
+        # self.master.master.active_contact = self.contact_id
+
         client.current_chat = {'chat_id': client.get_chat_id(contact_id=self.contact_id),
                                   'contact_id' : self.contact_id,
                                   'contact_name': self.name}
         app.window.workspace.update_space()
-
+        self.master.master.update_contacts()
 
 class Workspace(tk.Canvas):
     def __init__(self, master):

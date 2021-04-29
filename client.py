@@ -82,8 +82,9 @@ class Client:
             self.contacts = self.get_contacts()
         return response['request']
 
-    # def log_out(self):
-    #     db.remove_user()
+    def log_out(self):
+        self.current_chat = None
+        self.set_user()
 
     def get_contacts(self):
         response = requests.get(url=self.URLS['contacts'], params={'user_id': self.user_id}).json()
