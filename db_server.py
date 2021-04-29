@@ -89,7 +89,6 @@ class DB:
         conn = self.connect_bd()
         cur = conn.cursor()
         chat_id = self.get_chat_id(user1_id, user2_id)
-        result = None
         if chat_id is None:
             cur.execute('''INSERT INTO Chats (user1_id, user2_id) VALUES (?, ?)''', (user1_id, user2_id))
             conn.commit()
@@ -104,6 +103,7 @@ class DB:
             need_add_contact_id = self.get_contact_id(contact_name)
         elif not contact_id is None:
             need_add_contact_id = contact_id
+            contact_name = self.get_user(contact_id)
         else:
             return {'result': 'wrong_input'}
 
@@ -134,7 +134,7 @@ class DB:
                         (contacts_id, user_id))
         conn.commit()
         conn.close()
-        return {'result': 'ok'}
+        return {'result': 'ok', 'contact_id': need_add_contact_id, 'contact_name': contact_name}
 
     def remove_message(self, message_id):
         pass
@@ -155,7 +155,7 @@ class DB:
     def get_user(self, user_id):
         conn = self.connect_bd()
         cur = conn.cursor()
-        user_name = [i for i in cur.execute('''SELECT name FROM Users WHERE id="''' + user_id + '"')]
+        user_name = [i for i in cur.execute(f'''SELECT name FROM Users WHERE id="{user_id}"''')]
         result = None
         if user_name != []:
             result = user_name[0][0]

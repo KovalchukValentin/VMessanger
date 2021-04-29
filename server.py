@@ -137,8 +137,11 @@ def add_contact():
             or not isinstance(contact_id, int) and not contact_id is None:
         return abort(400)
 
-    result = db.add_contact(user_id=user_id, contact_name=contact_name, contact_id=contact_id)['result']
-    return {'request': result}
+    result = db.add_contact(user_id=user_id, contact_name=contact_name, contact_id=contact_id)
+    if set(result) == {'result', 'contact_id', 'contact_name'}:
+        return {'result': result['result'], 'contact_id': result['contact_id'], 'contact_name': result['contact_name']}
+    else:
+        return {'result': result['result'], 'contact_id': None, 'contact_name': None}
 
 
 @app.route('/contacts')

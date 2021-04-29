@@ -334,9 +334,12 @@ class Add_contact(tk.Toplevel):
         attention = client.check_name(name)
         if not attention:
             result = client.add_contact(contact_name=name)
-            if result == 'ok':
+            if result['result'] == 'ok':
                 self.destroy()
-                self.master.contacts.update_contacts()
+                if result['contact_id'] is None:
+                    print('added contact id is None ')
+                    return Exception
+                self.master.contacts.add_contact(contact_name=name, contact_id=result['contact_id'])
                 return
             attention = result
         self.show_attention(attention)
@@ -386,15 +389,20 @@ class Contacts(tk.Canvas):
     def show_contacts(self):
         self.frame = tk.Frame(self)
         self.create_window(0, 0, anchor=tk.NW, window=self.frame)
+        self.contact_btns = []
         if not client.contacts is None:
-            self.contact_btns = []
             for contact_id, contact_name in client.contacts:
                 self.contact_btns.append(Contact(master=self.frame, name=str(contact_name), contact_id=contact_id))
         self.update_idletasks()
 
+    def add_contact(self, contact_name, contact_id):
+        self.contact_btns.append(Contact(master=self.frame, name=str(contact_name), contact_id=contact_id))
+
     def update_contacts(self):
-        self.frame.destroy()
-        self.show_contacts()
+        for contact in self.contact_btns:
+            contact.update_contact()
+        # self.frame.destroy()
+        # self.show_contacts()
         self.configure(scrollregion=self.bbox(tk.ALL))
 
 
@@ -406,21 +414,15 @@ class Contact(Button):
         self.count_new_message = 0
         self.isnew = isnew
         self.btn_size = (28, 3)
-        self.text = f'{self.name.title()}'
-        if self.isnew:
-            self.text += ' (new)'
-        if self.count_new_message != 0:
-            self.text += f' ({self.count_new_message})'
 
         super(Contact, self).__init__(master=master,
-                                      text=self.text,
                                       width=self.btn_size[0],
-                                      height=self.btn_size[1], command=self.press)
+                                      height=self.btn_size[1],
+                                      command=self.press)
 
-        if not client.current_chat is None:
-            if client.current_chat['contact_id'] == self.contact_id:
-                self['state'] = tk.DISABLED
+        self.update_contact()
         self.pack()
+
 
     def press(self):
         # self.master.master.active_contact = self.contact_id
@@ -429,7 +431,31 @@ class Contact(Button):
                                   'contact_id' : self.contact_id,
                                   'contact_name': self.name}
         app.window.workspace.update_space()
+        self.count_new_message = 0
         self.master.master.update_contacts()
+
+
+    def new_message(self):
+        self.count_new_message += 1
+
+    def update_contact(self):
+        if not client.current_chat is None:
+            if client.current_chat['contact_id'] == self.contact_id:
+                self['state'] = tk.DISABLED
+            else:
+                self['state'] = tk.NORMAL
+        else:
+            self['state'] = tk.NORMAL
+
+        self.show_text()
+
+    def show_text(self):
+        text = f'{self.name.title()}'
+        if self.isnew:
+            text += ' (new)'
+        if self.count_new_message != 0:
+            text += f' ({self.count_new_message})'
+        self['text'] = text
 
 class Workspace(tk.Canvas):
     def __init__(self, master):
@@ -651,8 +677,9 @@ def run_app():
             if not new_messages is None:
                 for new_message in new_messages:
                     if not client.isincontacts(new_message['user_id']):
-                        client.add_contact(contact_id=new_message['user_id'])
+                        result = client.add_contact(contact_id=new_message['user_id'])
                         app.window.leftbar.contacts.update_contacts()
+                        app.window.leftbar.contacts.add_contact(contact_id=new_message['user_id'], contact_name=result['contact_name'])
                 try:
                     app.window.workspace.messages_space.add_messages(new_messages)
                 except:
