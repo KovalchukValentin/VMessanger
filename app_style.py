@@ -1,2 +1,10 @@
-bg_main = '#f2f2f2'
+bg_main = 'white' #'#f2f2f2'
 font_color = '#3b3b3b'
+btn_on_enter = "gray"
+btn_default = "white"
+btn_active = "green"
+btn_disabled_fg = "white"
+your_message_bg = "white"
+your_message_fg ='black'
+message_bg = 'white'
+message_fg = 'black'

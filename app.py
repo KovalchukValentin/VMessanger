@@ -36,7 +36,38 @@ class Button(tk.Button):
                                      height=height,
                                      width=width,
                                      anchor=anchor,
-                                     state=state)
+                                     state=state,
+                                     disabledforeground=style.btn_disabled_fg,
+                                     bd=0)
+        self.bind_callback()
+
+
+    def on_enter(self, event):
+        self.configure(background=style.btn_on_enter)
+
+    def on_leave(self, event):
+        self.configure(background=style.btn_default)
+
+    def empty(self, event):
+        pass
+
+    def disable(self):
+        self.configure(background=style.btn_active)
+        self.configure(state=tk.DISABLED)
+        self.bind_callback()
+
+    def activate(self):
+        self.configure(background=style.btn_default)
+        self.configure(state=tk.NORMAL)
+        self.bind_callback()
+
+    def bind_callback(self):
+        if self['state'] == tk.NORMAL:
+            self.bind("<Enter>", self.on_enter)
+            self.bind("<Leave>", self.on_leave)
+        else:
+            self.bind("<Enter>", self.empty)
+            self.bind("<Leave>", self.empty)
 
 
 class App(tk.Frame):
@@ -266,6 +297,7 @@ class Sing_in_window(Template_start_window):
         self.input_name.delete(0, 'end')
         self.input_password.delete(0, 'end')
 
+
 class Main_window(tk.Canvas):
     def __init__(self, master):
         self.name = 'main'
@@ -381,7 +413,7 @@ class Contacts(tk.Canvas):
         self.add_scroll()
 
     def add_scroll(self):
-        scroll = tk.Scrollbar(master=self, orient=tk.VERTICAL, command=self.yview)
+        scroll = tk.Scrollbar(master=self, orient=tk.VERTICAL, command=self.yview, bd=0, elementborderwidth=0)
         scroll.pack(side=tk.RIGHT, fill=tk.Y)
         self.configure(scrollregion=self.bbox(tk.ALL),
                        yscrollcommand=scroll.set)
@@ -443,11 +475,11 @@ class Contact(Button):
     def update_contact(self):
         if not client.current_chat is None:
             if client.current_chat['contact_id'] == self.contact_id:
-                self['state'] = tk.DISABLED
+                self.disable()
             else:
-                self['state'] = tk.NORMAL
+                self.activate()
         else:
-            self['state'] = tk.NORMAL
+            self.activate()
 
         self.show_text()
 
